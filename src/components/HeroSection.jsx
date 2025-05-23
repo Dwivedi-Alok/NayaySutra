@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
-import ViewB from './main';
+import ViewB from './Back';
 
 export default function HeroSection() {
   const navigate = useNavigate();
