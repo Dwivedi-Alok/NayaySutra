@@ -23,8 +23,7 @@ const logoSvg = (
 
 /* ———————————————————  Route list  ——————————————————— */
 const navItems = [
-  { label: 'Home',       path: '/' },
-  { label: 'Features',   path: '/features' },
+  { label: 'Home',    path: '/' },
   { label: 'Learn Law',  path: '/learn-law' },
   { label: 'Get Help',   path: '/help' },
   { label: 'Community',  path: '/community' },
