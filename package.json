@@ -4,26 +4,40 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
+    "dev:frontend": "vite",
+    "dev:backend": "nodemon server.js",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "server": "node server.js",
+    "seed": "node scripts/seedDatabase.js",
+    "start": "npm run server",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
     "@emailjs/browser": "^4.4.1",
+    "@google/generative-ai": "^0.24.1",
     "@heroicons/react": "^2.2.0",
-    "@langchain/community": "^0.3.44",
+    "@langchain/community": "^0.3.45",
+    "@langchain/core": "^0.3.57",
     "@langchain/openai": "^0.5.11",
+    "@langchain/textsplitters": "^0.1.0",
     "@pinecone-database/pinecone": "^6.0.1",
     "@tailwindcss/vite": "^4.1.7",
+    "cors": "^2.8.5",
     "docx": "^9.5.0",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
     "file-saver": "^2.0.5",
     "langchain": "^0.3.27",
     "openai": "^4.103.0",
+    "pacman": "^0.15.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-router-dom": "^7.6.0",
     "twilio": "^5.6.1",
+    "uuid": "^9.0.1",
     "zustand": "^5.0.5"
   },
   "devDependencies": {
@@ -32,13 +46,36 @@
     "@types/react-dom": "^19.1.2",
     "@vitejs/plugin-react": "^4.4.1",
     "autoprefixer": "^10.4.21",
-    "dotenv": "^16.5.0",
+    "concurrently": "^8.2.2",
     "eslint": "^9.25.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^16.0.0",
+    "nodemon": "^3.1.10",
     "postcss": "^8.5.3",
     "tailwindcss": "^4.1.7",
     "vite": "^6.3.5"
-  }
+  },
+  "description": "AI-powered legal assistant chatbot with RAG capabilities using Gemini AI and Pinecone vector database.",
+  "main": "server.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Dwivedi-Alok/NayaySutra.git"
+  },
+  "keywords": [
+    "legal-tech",
+    "ai-chatbot",
+    "gemini-ai",
+    "pinecone",
+    "rag",
+    "react",
+    "vite",
+    "legal-assistant"
+  ],
+  "author": "Alok Dwivedi",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Dwivedi-Alok/NayaySutra/issues"
+  },
+  "homepage": "https://github.com/Dwivedi-Alok/NayaySutra#readme"
 }
