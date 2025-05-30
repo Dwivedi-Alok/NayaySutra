@@ -1,306 +1,481 @@
-/* DocumentGenerator.jsx */
 import React, { useState, useMemo, useCallback } from 'react'
-import { Document, Packer, Paragraph, TextRun } from 'docx'
+import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType } from 'docx'
 import { saveAs } from 'file-saver'
+import { 
+  DocumentTextIcon,
+  SparklesIcon,
+  ArrowPathIcon,
+  ClipboardDocumentIcon,
+  ArrowDownTrayIcon,
+  CheckCircleIcon,
+  ExclamationCircleIcon,
+  InformationCircleIcon,
+  ScaleIcon
+} from '@heroicons/react/24/outline'
 
 /* -------------------------- TEMPLATES -------------------------- */
 const TEMPLATES = {
-  Affidavit: `
-    Legal Document: AFFIDAVIT
+  Affidavit: {
+    icon: '📜',
+    description: 'Legal sworn statement for various purposes',
+    fields: ['name', 'age', 'address', 'purpose', 'details'],
+    template: `
+      AFFIDAVIT
 
-    I, {{name}}, do solemnly affirm the following on {{date}}:
+      I, {{name}}, aged {{age}} years, resident of {{address}}, do hereby solemnly affirm and declare as under:
 
-    {{details}}
+      Purpose: {{purpose}}
 
-    ____________________
-    Signature
-  `,
+      {{details}}
 
-  'Rental Agreement': `
-    Legal Document: RENTAL AGREEMENT
+      I state that the above facts are true to the best of my knowledge and belief.
 
-    This Rental Agreement is made on {{date}} between {{name}} (Landlord) and Tenant.
+      Place: {{city}}
+      Date: {{date}}
 
-    Terms:
-    {{details}}
+      ____________________
+      {{name}}
+      (Deponent)
+    `
+  },
 
-    ____________________
-    Signature (Landlord)
-  `,
+  'Rental Agreement': {
+    icon: '🏠',
+    description: 'Standard rental/lease agreement between landlord and tenant',
+    fields: ['landlordName', 'tenantName', 'propertyAddress', 'rent', 'duration', 'details'],
+    template: `
+      RENTAL AGREEMENT
 
-  'Power of Attorney': `
-    Legal Document: POWER OF ATTORNEY
+      This Rental Agreement is entered into on {{date}} between:
 
-    I, {{name}}, appoint the following powers on {{date}}:
+      LANDLORD: {{landlordName}}
+      TENANT: {{tenantName}}
 
-    {{details}}
+      PROPERTY: {{propertyAddress}}
+      MONTHLY RENT: ₹{{rent}}
+      DURATION: {{duration}} months
 
-    ____________________
-    Signature
-  `,
+      TERMS AND CONDITIONS:
+      {{details}}
 
-  Will: `
-    Legal Document: LAST WILL & TESTAMENT
+      ____________________          ____________________
+      Landlord Signature            Tenant Signature
+    `
+  },
 
-    I, {{name}}, being of sound mind on {{date}}, declare:
+  'Power of Attorney': {
+    icon: '⚖️',
+    description: 'Authorize someone to act on your behalf',
+    fields: ['principalName', 'agentName', 'powers', 'duration', 'details'],
+    template: `
+      POWER OF ATTORNEY
 
-    {{details}}
+      I, {{principalName}}, hereby appoint {{agentName}} as my attorney-in-fact to act in my place and stead for the following purposes:
 
-    ____________________
-    Signature
-  `,
+      POWERS GRANTED:
+      {{powers}}
 
-  'Legal Notice': `
-    Legal Document: LEGAL NOTICE
+      DURATION: {{duration}}
 
-    To: {{name}}
-    Date: {{date}}
+      Additional Terms:
+      {{details}}
 
-    {{details}}
+      Executed on: {{date}}
 
-    ____________________
-    Sender’s Signature
-  `,
+      ____________________
+      {{principalName}}
+      (Principal)
+    `
+  },
 
-  'Bail Bond': `
-    IN THE COURT OF Shri _______________________________________
+  'Legal Notice': {
+    icon: '⚠️',
+    description: 'Formal legal notice to inform or warn',
+    fields: ['senderName', 'recipientName', 'recipientAddress', 'subject', 'details'],
+    template: `
+      LEGAL NOTICE
 
-    Police Station : ______________________       Next date of hearing _____________
-    Under Section  : ______________________       Sent to Jail on       _____________
-    F.I.R. No.     : ______________________
+      To,
+      {{recipientName}}
+      {{recipientAddress}}
 
-    Bail Bond
+      Subject: {{subject}}
 
-    I, {{name}} resident of ______________________________________________
-    having been arrested / detained without warrant … (rest of details)
+      Date: {{date}}
 
-    {{details}}
+      Dear Sir/Madam,
 
-    Dated: {{date}}
+      Under instructions from my client {{senderName}}, I hereby serve upon you the following legal notice:
 
-    ____________________
-    Signature
-  `,
+      {{details}}
 
-  'Execution Petition': `
-    IN THE COURT OF ____________________________________
+      You are hereby called upon to comply with the above within 15 days from the receipt of this notice, failing which my client shall be constrained to initiate appropriate legal proceedings against you.
 
-    _________________________________________  Decree Holder
-                                    VS
-    _________________________________________  Judgment Debtor
-
-    Dated: {{date}}
-
-    The Decree Holder prays for execution of the Decree/Order, the particulars whereof are stated below:
-
-    1. No. of Suit:
-    2. Name of Parties: {{name}}
-    3. Date of Decree / Order sought to be executed:
-    4. Whether an appeal was filed against the decree / order:
-    5. Whether any payment has been received towards satisfaction of decree / order:
-    6. Previous execution applications (dates & results):
-    7. Amount of suit along-with interest as per decree / relief granted:
-    8. Amount of costs (if allowed by Court):
-    9. Against whom execution is sought:
-    10. In what manner Court’s assistance is sought:
-
-    {{details}}
-
-    The Decree Holder humbly prays accordingly.
-
-    ____________________
-    Decree Holder
-
-    Verification:
-    I, {{name}}, do hereby verify that the contents of this application are true to my knowledge and belief.
-
-    Delhi.
-    Dated: {{date}}
-
-    ____________________
-    Signature of Decree Holder
-    Through: Advocate
-
-    Order:
-    ____________________
-  `,
-
-  'Affidavit (Consumer Complaint)': `
-    BEFORE THE HON'BLE CONSUMER DISPUTES REDRESSAL FORUM, NEW DELHI
-
-    COMPLAINT NO._____ OF 20__
-
-    IN THE MATTER OF:
-    {{name}} AND ANR                                   COMPLAINANT(S)
-
-    VERSUS
-
-    __________ DEVELOPERS LTD & OTHERS                OPPOSITE PARTIES
-
-    AFFIDAVIT
-
-    I, {{name}}, Wife / Husband of __________________, aged about ___ years, resident
-    of ______________________________, New Delhi-____, do hereby solemnly affirm and
-    declare as under:
-
-    1. That I am one of the complainants in the above matter, am fully conversant with
-       the facts and circumstances of the complaint and competent to depose
-       this affidavit.
-
-    2. That I have read and understood the contents of the accompanying complaint
-       filed on my behalf and state that the statements therein are true and correct
-       to my personal knowledge and the submissions are true to my belief on the
-       basis of legal advice received.
-
-    {{details}}
-
-    DEPONENT
-
-
-    VERIFICATION
-
-    I, the deponent above-named, verify that the contents of this affidavit are true
-    and correct to my personal knowledge and nothing material has been concealed or
-    falsely stated.
-
-    Verified at New Delhi on this {{date}}.
-
-    DEPONENT
-  `,
+      ____________________
+      Advocate for {{senderName}}
+    `
+  }
 }
 
 /* ----------------------- COMPONENT ----------------------- */
 function DocumentGenerator() {
-  const [docType, setDocType]   = useState('Affidavit')
-  const [name, setName]         = useState('')
-  const [details, setDetails]   = useState('')
-  const [generatedDoc, setDoc]  = useState('')
-  const [error, setError]       = useState('')
+  const [docType, setDocType] = useState('Affidavit')
+  const [formData, setFormData] = useState({})
+  const [generatedDoc, setDoc] = useState('')
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [aiSuggestions, setAiSuggestions] = useState({})
+  const [copied, setCopied] = useState(false)
 
-  const today = useMemo(() => new Date().toLocaleDateString(), [])
+  const today = useMemo(() => new Date().toLocaleDateString('en-IN'), [])
+  const currentTemplate = TEMPLATES[docType]
 
-  /* ----------------------- generate text ----------------------- */
+  // Initialize form data when template changes
+  React.useEffect(() => {
+    const initialData = {}
+    currentTemplate.fields.forEach(field => {
+      initialData[field] = formData[field] || ''
+    })
+    setFormData(initialData)
+    setDoc('')
+    setError('')
+  }, [docType])
+
+  // Get AI suggestions for a field
+  const getAISuggestion = async (field) => {
+    setLoading(true)
+    try {
+      // Simulate AI API call
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      
+      // Mock AI suggestions based on field type
+      const suggestions = {
+        details: `1. The parties agree to the terms and conditions mentioned herein.
+2. This agreement shall be binding upon both parties.
+3. Any disputes shall be resolved through mutual discussion.
+4. This document is executed in good faith.`,
+        purpose: 'For submission to the concerned authorities as proof of residence/identity',
+        powers: `1. To manage and operate bank accounts
+2. To sign documents on my behalf
+3. To represent me in legal matters
+4. To make decisions regarding property matters`,
+        subject: 'Notice for breach of contract and demand for compensation'
+      }
+      
+      setAiSuggestions(prev => ({
+        ...prev,
+        [field]: suggestions[field] || 'AI suggestion for this field...'
+      }))
+    } catch (err) {
+      console.error('AI suggestion error:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Apply AI suggestion
+  const applySuggestion = (field) => {
+    if (aiSuggestions[field]) {
+      setFormData(prev => ({
+        ...prev,
+        [field]: aiSuggestions[field]
+      }))
+      setAiSuggestions(prev => ({
+        ...prev,
+        [field]: null
+      }))
+    }
+  }
+
+  // Generate document
   const generate = useCallback(() => {
-    if (!name.trim() || !details.trim()) {
-      setError('Name and details are required.')
+    // Validate required fields
+    const emptyFields = currentTemplate.fields.filter(field => !formData[field]?.trim())
+    if (emptyFields.length > 0) {
+      setError(`Please fill in: ${emptyFields.join(', ')}`)
       return
     }
     setError('')
 
-    const tpl = TEMPLATES[docType] || TEMPLATES.Affidavit
-    const filled = tpl
-      .replace(/{{name}}/g,    name.trim())
-      .replace(/{{details}}/g, details.trim())
-      .replace(/{{date}}/g,    today)
+    let filled = currentTemplate.template
+    
+    // Replace template variables
+    Object.entries(formData).forEach(([key, value]) => {
+      filled = filled.replace(new RegExp(`{{${key}}}`, 'g'), value.trim())
+    })
+    
+    // Add date and city
+    filled = filled.replace(/{{date}}/g, today)
+    filled = filled.replace(/{{city}}/g, 'New Delhi')
+    
+    // Clean up formatting
+    filled = filled
       .split('\n')
-      .map(l => l.trimEnd())
-      .join('\n')
+      .map(l => l.trim())
+      .filter(l => l.length > 0)
+      .join('\n\n')
       .trim()
 
     setDoc(filled)
-  }, [docType, name, details, today])
+  }, [currentTemplate, formData, today])
 
-  /* ----------------------- clipboard ----------------------- */
-  const copyToClipboard = () => navigator.clipboard.writeText(generatedDoc)
+  // Copy to clipboard
+  const copyToClipboard = async () => {
+    await navigator.clipboard.writeText(generatedDoc)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
 
-  /* ----------------------- DOCX download ----------------------- */
+  // Download as DOCX
   const downloadDocx = async () => {
     if (!generatedDoc) return
 
-    // Convert each line to a Word paragraph
-    const paragraphs = generatedDoc.split('\n').map(line =>
-      line.trim().length
-        ? new Paragraph({ children: [new TextRun(line)] })
-        : new Paragraph(''),
-    )
+    const paragraphs = generatedDoc.split('\n\n').map(para => {
+      const isHeading = para === para.toUpperCase() && para.length < 50
+      
+      return new Paragraph({
+        children: [new TextRun({
+          text: para,
+          bold: isHeading,
+          size: isHeading ? 32 : 24
+        })],
+        heading: isHeading ? HeadingLevel.HEADING_1 : undefined,
+        alignment: isHeading ? AlignmentType.CENTER : AlignmentType.LEFT,
+        spacing: { after: 200 }
+      })
+    })
 
     const doc = new Document({
-      sections: [{ properties: {}, children: paragraphs }],
+      sections: [{
+        properties: {
+          page: {
+            margin: {
+              top: 1440,
+              right: 1440,
+              bottom: 1440,
+              left: 1440
+            }
+          }
+        },
+        children: paragraphs
+      }]
     })
 
     const blob = await Packer.toBlob(doc)
-    saveAs(blob, `${docType.replace(/\s+/g, '_')}.docx`)
+    saveAs(blob, `${docType.replace(/\s+/g, '_')}_${today}.docx`)
+  }
+
+  // Field label formatter
+  const formatFieldLabel = (field) => {
+    return field
+      .replace(/([A-Z])/g, ' $1')
+      .replace(/^./, str => str.toUpperCase())
+      .trim()
   }
 
   /* ----------------------- UI ----------------------- */
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-      <div className="w-full max-w-2xl bg-white rounded-lg shadow p-6">
-        <h1 className="text-2xl font-bold mb-4 text-center">
-          Legal Document Generator
-        </h1>
-
-        {/* -------- Form -------- */}
-        <div className="space-y-4">
-          <label className="block">
-            <span className="text-sm font-medium">Document Type</span>
-            <select
-              value={docType}
-              onChange={e => setDocType(e.target.value)}
-              className="mt-1 w-full border rounded px-3 py-2"
-            >
-              {Object.keys(TEMPLATES).map(type => (
-                <option key={type}>{type}</option>
-              ))}
-            </select>
-          </label>
-
-          <label className="block">
-            <span className="text-sm font-medium">Your Full Name</span>
-            <input
-              type="text"
-              value={name}
-              onChange={e => setName(e.target.value)}
-              className="mt-1 w-full border rounded px-3 py-2"
-              placeholder="e.g. John Doe"
-            />
-          </label>
-
-          <label className="block">
-            <span className="text-sm font-medium">Details / Terms</span>
-            <textarea
-              rows={5}
-              value={details}
-              onChange={e => setDetails(e.target.value)}
-              className="mt-1 w-full border rounded px-3 py-2"
-              placeholder="Key points to include…"
-            />
-          </label>
-
-          {error && <p className="text-red-600">{error}</p>}
-
-          <button
-            onClick={generate}
-            className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
-          >
-            Generate
-          </button>
+    <div className="min-h-screen bg-[#1a1d29] flex items-center justify-center p-4">
+      <div className="w-full max-w-4xl">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-[#6366f1] rounded-2xl mb-4">
+            <DocumentTextIcon className="w-8 h-8 text-white" />
+          </div>
+          <h1 className="text-3xl font-bold text-white mb-2">
+            AI Legal Document Generator
+          </h1>
+          <p className="text-gray-400">
+            Generate professional legal documents with AI assistance
+          </p>
         </div>
 
-        {/* -------- Output -------- */}
-        {generatedDoc && (
-          <div className="mt-6">
-            <h2 className="text-lg font-semibold mb-2">Your Document</h2>
-            <pre className="bg-gray-50 p-4 rounded whitespace-pre-wrap">
-              {generatedDoc}
-            </pre>
-
-            <div className="mt-4 flex space-x-2">
-              <button
-                onClick={copyToClipboard}
-                className="flex-1 bg-green-500 text-white py-2 rounded hover:bg-green-600"
-              >
-                Copy
-              </button>
-              <button
-                onClick={downloadDocx}
-                className="flex-1 bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700"
-              >
-                Download .docx
-              </button>
+        <div className="bg-[#252836] rounded-2xl shadow-xl p-8">
+          {/* Document Type Selection */}
+          <div className="mb-8">
+            <label className="block text-sm font-medium text-gray-300 mb-3">
+              Select Document Type
+            </label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {Object.entries(TEMPLATES).map(([type, config]) => (
+                <button
+                  key={type}
+                  onClick={() => setDocType(type)}
+                  className={`p-4 rounded-xl border-2 transition-all text-left ${
+                    docType === type
+                      ? 'border-[#6366f1] bg-[#6366f1]/10'
+                      : 'border-[#2a2d3a] hover:border-[#383b47] bg-[#2a2d3a]'
+                  }`}
+                >
+                  <div className="flex items-start gap-3">
+                    <span className="text-2xl">{config.icon}</span>
+                    <div>
+                      <h3 className={`font-semibold ${
+                        docType === type ? 'text-white' : 'text-gray-300'
+                      }`}>
+                        {type}
+                      </h3>
+                      <p className="text-sm text-gray-500 mt-1">
+                        {config.description}
+                      </p>
+                    </div>
+                  </div>
+                </button>
+              ))}
             </div>
           </div>
-        )}
+
+          {/* Form Fields */}
+          <div className="space-y-4 mb-6">
+                       {currentTemplate.fields.map(field => (
+              <div key={field}>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  {formatFieldLabel(field)}
+                </label>
+                <div className="relative">
+                  {field === 'details' || field === 'powers' ? (
+                    <textarea
+                      value={formData[field] || ''}
+                      onChange={e => setFormData(prev => ({ ...prev, [field]: e.target.value }))}
+                      className="w-full px-4 py-3 bg-[#2a2d3a] border border-[#383b47] rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#6366f1] focus:border-transparent transition-all"
+                      placeholder={`Enter ${formatFieldLabel(field).toLowerCase()}...`}
+                      rows={4}
+                    />
+                  ) : (
+                    <input
+                      type="text"
+                      value={formData[field] || ''}
+                      onChange={e => setFormData(prev => ({ ...prev, [field]: e.target.value }))}
+                      className="w-full px-4 py-3 bg-[#2a2d3a] border border-[#383b47] rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#6366f1] focus:border-transparent transition-all"
+                      placeholder={`Enter ${formatFieldLabel(field).toLowerCase()}...`}
+                    />
+                  )}
+                  
+                  {/* AI Suggestion Button */}
+                  {(field === 'details' || field === 'purpose' || field === 'powers' || field === 'subject') && (
+                    <button
+                      onClick={() => getAISuggestion(field)}
+                      disabled={loading}
+                      className="absolute right-2 top-2 p-2 bg-[#6366f1] hover:bg-[#5558e3] rounded-lg transition-all group"
+                      title="Get AI suggestion"
+                    >
+                      {loading ? (
+                        <ArrowPathIcon className="w-4 h-4 text-white animate-spin" />
+                      ) : (
+                        <SparklesIcon className="w-4 h-4 text-white" />
+                      )}
+                    </button>
+                  )}
+                </div>
+                
+                {/* AI Suggestion Display */}
+                {aiSuggestions[field] && (
+                  <div className="mt-2 p-3 bg-[#6366f1]/10 border border-[#6366f1]/30 rounded-lg">
+                    <div className="flex items-start gap-2">
+                      <SparklesIcon className="w-4 h-4 text-[#6366f1] mt-0.5" />
+                      <div className="flex-1">
+                        <p className="text-sm text-gray-300 mb-2">AI Suggestion:</p>
+                        <p className="text-sm text-gray-400 whitespace-pre-wrap">{aiSuggestions[field]}</p>
+                        <button
+                          onClick={() => applySuggestion(field)}
+                          className="mt-2 text-sm text-[#6366f1] hover:text-[#5558e3] font-medium"
+                        >
+                          Use this suggestion →
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* Error Message */}
+          {error && (
+            <div className="mb-6 p-4 bg-red-900/20 border border-red-800 rounded-lg flex items-start gap-3">
+              <ExclamationCircleIcon className="w-5 h-5 text-red-400 mt-0.5" />
+              <p className="text-sm text-red-400">{error}</p>
+            </div>
+          )}
+
+          {/* Generate Button */}
+          <button
+            onClick={generate}
+            className="w-full py-4 bg-gradient-to-r from-[#6366f1] to-[#5558e3] text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-[#6366f1]/25 transform hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2"
+          >
+            <DocumentTextIcon className="w-5 h-5" />
+            Generate Document
+          </button>
+
+          {/* Generated Document Output */}
+          {generatedDoc && (
+            <div className="mt-8">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold text-white flex items-center gap-2">
+                  <CheckCircleIcon className="w-6 h-6 text-green-500" />
+                  Your Document is Ready
+                </h2>
+                <div className="flex gap-2">
+                  <button
+                    onClick={copyToClipboard}
+                    className={`px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 ${
+                      copied
+                        ? 'bg-green-600 text-white'
+                        : 'bg-[#2a2d3a] text-gray-300 hover:bg-[#383b47] hover:text-white'
+                    }`}
+                  >
+                    {copied ? (
+                      <>
+                        <CheckCircleIcon className="w-4 h-4" />
+                        Copied!
+                      </>
+                    ) : (
+                      <>
+                        <ClipboardDocumentIcon className="w-4 h-4" />
+                        Copy
+                      </>
+                    )}
+                  </button>
+                  <button
+                    onClick={downloadDocx}
+                    className="px-4 py-2 bg-[#2a2d3a] text-gray-300 hover:bg-[#383b47] hover:text-white rounded-lg font-medium transition-all flex items-center gap-2"
+                  >
+                    <ArrowDownTrayIcon className="w-4 h-4" />
+                    Download .docx
+                  </button>
+                </div>
+              </div>
+
+              <div className="bg-[#2a2d3a] rounded-xl p-6 border border-[#383b47]">
+                <pre className="whitespace-pre-wrap text-gray-300 font-mono text-sm leading-relaxed">
+                  {generatedDoc}
+                </pre>
+              </div>
+
+              {/* Additional Info */}
+              <div className="mt-4 p-4 bg-[#6366f1]/10 border border-[#6366f1]/30 rounded-lg">
+                <div className="flex items-start gap-3">
+                  <InformationCircleIcon className="w-5 h-5 text-[#6366f1] mt-0.5" />
+                  <div>
+                    <p className="text-sm text-gray-300 font-medium mb-1">Important Note:</p>
+                    <p className="text-sm text-gray-400">
+                      This is a template document. Please review and modify as needed. 
+                      For legal validity, consider getting it notarized or consulting with a legal professional.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Footer Info */}
+        <div className="mt-6 text-center">
+          <p className="text-xs text-gray-500 flex items-center justify-center gap-1">
+            <ScaleIcon className="w-3 h-3" />
+            AI-powered document generation • Always consult a lawyer for legal advice
+          </p>
+        </div>
       </div>
     </div>
   )

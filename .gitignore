@@ -22,3 +22,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+*.log
+*.pyc
+*.cache
+*.env
+*.example
+.env.backend

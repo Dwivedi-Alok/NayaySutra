@@ -5,7 +5,8 @@
 /* Base body styles */
 body {
   font-family: 'Inter', sans-serif;
-  background: #f9fafb;
+  background-image: linear-gradient(to bottom right, #01173a, #320060);
+
   color: #1f2937;
   margin: 0;
   padding: 0;
