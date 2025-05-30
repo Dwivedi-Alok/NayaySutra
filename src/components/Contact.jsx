@@ -14,8 +14,8 @@ const CONTACT_INFO = [
   {
     icon: PhoneIcon,
     title: 'Phone',
-    value: '+91 1800-123-4567',
-    link: 'tel:+911800123456',
+    value: '+91 9315804493',
+    link: 'tel:+919315804493',
     description: 'Mon-Fri 9am to 6pm'
   },
   {
@@ -95,7 +95,7 @@ Thank you for contacting Nayay Sutra. We have received your message and apprecia
 Our team will review your inquiry and respond within 24 hours during business days (Monday-Saturday, 9:00 AM - 6:00 PM IST).
 
 In the meantime:
-• For urgent legal matters, call us at +91 1800-123-4567
+• For urgent legal matters, call us at +91 9315804493
 • Browse our FAQ section at www.nayaysutra.in/faq
 • Join our community forum for peer support
 
@@ -170,7 +170,7 @@ This is an automated response. Please do not reply to this email.
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
+    <div id='contactus1' className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
