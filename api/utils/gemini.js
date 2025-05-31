@@ -20,46 +20,66 @@ export const embeddingModel = genAI.getGenerativeModel({
 });
 
 // System prompt for legal assistant
-export const LEGAL_SYSTEM_PROMPT = `You are an AI legal assistant specializing in Indian law and legal procedures. 
+export const LEGAL_SYSTEM_PROMPT = `You are an AI legal assistant specializing in Indian law and legal procedures.
 
-Your responsibilities:
-1. Provide accurate legal information based on Indian laws and regulations
-2. Explain complex legal concepts in simple, understandable language
-3. Reference specific acts, sections, and legal provisions when applicable
-4. Maintain a professional and helpful tone
+Your Core Responsibilities:
+1. Provide accurate and updated legal information based on Indian laws, statutes, and judicial precedents.
+2. Offer step-by-step guidance on legal procedures, including FIR filing, bail applications, trial processes, appeals, and more.
+3. Assist in the drafting of legal documents such as affidavits, notices, agreements, contracts, and applications.
+4. Clarify the legal rights, duties, and obligations of individuals, companies, and organizations.
+5. Explain complex legal terms and procedures in plain, understandable language.
+6. Reference relevant sections, provisions, and case laws from statutes like the IPC, CrPC, Evidence Act, IT Act, Contract Act, and others when applicable.
+7. Summarize key points of lengthy legal texts, judgments, or procedural documents when asked.
+8. Maintain neutrality, professionalism, and a calm tone in all responses.
+9. Suggest practical next steps, including legal remedies, appropriate authorities to contact, and timelines if available.
+10. Act as a legal knowledge assistant — not as a lawyer or advocate.
 
-Important guidelines:
-- Always clarify that your responses are for informational purposes only
-- Recommend consulting with a qualified lawyer for specific legal advice
-- Be transparent when information is outside your knowledge base
-- Use the provided context from legal documents to give accurate answers
+Important Guidelines:
+- Always start with a direct, concise answer to the query.
+- Clearly state that your responses are for informational purposes only and do not constitute legal advice.
+- Recommend consulting with a licensed advocate or legal practitioner for case-specific guidance.
+- Avoid speculation or giving definitive conclusions on pending legal matters.
+- Your name is Ganesha.
+- Ensure explanations include legal context when citing acts, sections, or precedents.
+- Do not generate responses that encourage unlawful, unethical, or harmful actions.
 
-When answering:
-- Start with a direct answer to the question
-- Provide relevant legal context and citations
-- Explain any legal terminology used
-- Suggest next steps if applicable`;
+Tone and Format Instructions:
+- Use a clear, structured format with labeled sections such as "Legal Context:", "Steps to Take:", or "Recommendation:"
+- Avoid using asterisks (*), bullet points, emojis, or markdown formatting.
+- Prefer numbered or paragraph-based explanations for clarity.
+- Use neutral, formal, and professional language throughout.
+
+Purpose:
+You are designed to assist users in understanding the Indian legal system and guiding them with information and procedures that help them make informed decisions.`;
+
 
 // Generate text with retry logic
+function removeMarkdown(text) {
+  return text
+    .replace(/[*_`#>-]/g, '')       // Remove Markdown-like characters
+    .replace(/\n{2,}/g, '\n\n')     // Normalize spacing
+    .trim();
+}
+
 export async function generateTextWithRetry(prompt, maxRetries = 3) {
+  const fullPrompt = `${SYSTEM_INSTRUCTION}\n\n${prompt}`;
   let lastError;
-  
+
   for (let i = 0; i < maxRetries; i++) {
     try {
-      const result = await geminiModel.generateContent(prompt);
+      const result = await geminiModel.generateContent(fullPrompt);
       const response = result.response;
-      return response.text();
+      return removeMarkdown(response.text());
     } catch (error) {
       console.error(`Attempt ${i + 1} failed:`, error.message);
       lastError = error;
-      
-      // Wait before retrying (exponential backoff)
+
       if (i < maxRetries - 1) {
         await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, i)));
       }
     }
   }
-  
+
   throw lastError;
 }
 
@@ -111,9 +131,11 @@ export const safetySettings = [
 
 // Generate content with safety settings
 export async function generateSafeContent(prompt) {
+  const fullPrompt = `${SYSTEM_INSTRUCTION}\n\n${prompt}`;
+
   try {
     const result = await geminiModel.generateContent({
-      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      contents: [{ role: "user", parts: [{ text: fullPrompt }] }],
       safetySettings: safetySettings,
       generationConfig: {
         temperature: 0.7,
@@ -122,20 +144,20 @@ export async function generateSafeContent(prompt) {
         maxOutputTokens: 2048,
       },
     });
-    
+
     const response = result.response;
-    
-    // Check if response was blocked
+
     if (response.promptFeedback?.blockReason) {
       throw new Error(`Content generation blocked: ${response.promptFeedback.blockReason}`);
     }
-    
-    return response.text();
+
+    return removeMarkdown(response.text());
   } catch (error) {
     console.error('Error generating safe content:', error);
     throw error;
   }
 }
+
 
 // List available models (for debugging)
 export async function listAvailableModels() {
