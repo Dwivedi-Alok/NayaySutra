@@ -10,7 +10,7 @@ const logoSvg = (
     fill="none"
     viewBox="0 0 24 24"
     stroke="currentColor"
-    className="inline-block w-6 h-6 mr-1 text-blue-600"
+    className="inline-block bg-white w-6 h-6 mr-1 text-blue-600"
   >
     <path
       strokeLinecap="round"
@@ -23,18 +23,15 @@ const logoSvg = (
 
 /* ———————————————————  Route list  ——————————————————— */
 const navItems = [
-  { label: 'Home',    path: '/' },
-  { label: 'Learn Law',  path: '/learn-law' },
-  { label: 'Get Help',   path: '/help' },
-  { label: 'Community',  path: '/community' },
+  { label: 'Home', path: '/' },
+  { label: 'Learn Law', path: '/learn-law' },
+  { label: 'Get Help', path: '/help' },
+  { label: 'Community', path: '/community' },
   { label: 'Contact Us', path: '/contact' },
 ];
 
 export default function Navbar() {
-  /* global language store */
   const { lang, setLang } = useLangStore();
-
-  /* local UI state */
   const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -49,16 +46,14 @@ export default function Navbar() {
     'Marathi',
   ];
 
-  /* Tailwind classes for active vs inactive links */
   const navLinkClasses = ({ isActive }) =>
     `text-gray-700 font-medium px-1 py-0.5 transition-colors duration-200
      ${isActive ? 'border-b-2 border-blue-700 text-blue-700'
                 : 'hover:text-blue-700'}`;
 
-  /* ———————————————————  JSX  ——————————————————— */
   return (
-    <nav className="bg-white shadow sticky top-0 z-30 w-full">
-      <div className="w-full px-4 sm:px-6 lg:px-8">
+    <nav className="bg-white text-gray-900 shadow sticky top-0 z-30 w-full">
+      <div className="w-full bg-white text-gray-900 px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
           {/* Logo / brand */}
           <NavLink

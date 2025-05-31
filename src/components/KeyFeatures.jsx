@@ -40,7 +40,7 @@ function FeatureCard({ icon: Icon, title, to, gradient, iconColor, index }) {
           focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-indigo-400
         `}
       >
-        <div className="flex h-full flex-col items-center gap-4 rounded-2xl bg-white/90 dark:bg-gray-900/90 px-8 py-10 backdrop-blur-sm transition-all group-hover:bg-white/80 dark:group-hover:bg-gray-900/80">
+        <div className="flex h-full flex-col items-center gap-4 rounded-2xl  dark:bg-gray-900/90 px-8 py-10 backdrop-blur-sm transition-all group-hover:bg-white/80 dark:group-hover:bg-gray-900/80">
           <div className={`rounded-full bg-gradient-to-br ${gradient} p-4 shadow-lg`}>
             <Icon className={`h-8 w-8 ${iconColor}`} />
           </div>
@@ -58,7 +58,7 @@ export default function KeyFeatures() {
   const features = [
     {
       icon: ChatBubbleLeftRightIcon,
-      title: 'GPT-Powered Legal Chatbot',
+      title: 'Ganesha',
       to: '/chatbot',
       gradient: 'from-purple-500 to-indigo-600',
       iconColor: 'text-white',
@@ -96,7 +96,7 @@ export default function KeyFeatures() {
   return (
     <section
       id="features"
-      className="relative w-full bg-gray-50 dark:bg-gray-900 py-24 px-4 sm:px-6 lg:px-8"
+      className="relative w-full bg-[#06070f] py-24 px-4 sm:px-6 lg:px-8"
     >
       {/* Background decoration */}
       <div className="absolute inset-0 bg-gradient-to-br from-indigo-50 via-transparent to-purple-50 dark:from-indigo-950/20 dark:to-purple-950/20 opacity-50" />

@@ -5,24 +5,32 @@
 /* Base body styles */
 body {
   font-family: 'Inter', sans-serif;
-  background-image: linear-gradient(to bottom right, #01173a, #320060);
+   background-color: #f3f4f6;
 
   color: #1f2937;
   margin: 0;
   padding: 0;
   
 }
-
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: #111827; /* bg-gray-900 */
+  }
+}
+footer{
+  background-color: #1f2937;
+  border: none;
+}
 /* Text selection style */
 ::selection {
-  background-color: #2563eb; /* Tailwind blue-600 */
+  background-color: #022571; /* Tailwind blue-600 */
   color: white;
 
 }
 
 /* Navbar styles */
 nav {
-  background-color: white;
+  background-color: rgb(255, 255, 255);
   box-shadow: 0 1px 3px rgb(0 0 0 / 0.1);
   position: sticky;
   top: 0;
@@ -70,7 +78,7 @@ nav button.bg-blue-100:hover {
 
 /* Hero Section */
 section {
-  background-color: white;
+  background-color: rgb(2, 18, 64);
   padding-top: 4rem;
   padding-bottom: 4rem;
   padding-left: 1rem;
@@ -169,6 +177,7 @@ section h1 {
   padding-left: 1rem;
   padding-right: 1rem;
   max-width: 112rem; /* max-w-7xl */
+  margin-top: auto ;
   margin-left: auto;
   margin-right: auto;
  
@@ -204,17 +213,22 @@ section h1 {
 
 /* Feature Card */
 .feature-card {
-  background: white;
+  background:   #ebedf0;
   border-radius: 1rem;
   padding: 1.5rem;
-  max-width: 20rem;
+  max-width: 100%;
   box-shadow: 0 4px 6px rgb(0 0 0 / 0.1);
   text-align: center;
   transition: box-shadow 0.3s ease;
   cursor: default;
+  
  
 }
-
+@media (prefers-color-scheme: dark) {
+  .feature-card {
+    background-color: #111827; /* bg-gray-900 */
+  }
+}
 .feature-card:hover {
   box-shadow: 0 10px 15px rgb(0 0 0 / 0.15);
 }
@@ -233,33 +247,34 @@ section h1 {
 
 /* Footer */
 footer {
-  background-color: white;
+   background-color: #ffffff;
   margin-top: 6rem;
   padding-top: 2rem;
-  padding-bottom: 2rem;
   text-align: center;
   color: #6b7280; /* gray-500 */
   font-size: 0.875rem;
+  width: 100%;
   max-width: 100%; /* max-w-7xl */
-  margin-left: auto;
-  margin-right: auto;
-  padding-left: 1rem;
-  padding-right: 1rem;
-
+  
+   
 }
-
+@media (prefers-color-scheme: dark) {
+  footer {
+    background-color: #111827; /* bg-gray-900 */
+  }
+}
 /* Responsive styles for larger screens */
 @media (min-width: 1024px) {
   nav {
-    padding: 0 2rem; /* Add padding for larger screens */
+    padding: 0 0rem; /* Add padding for larger screens */
   }
 
   section {
-    padding: 4rem 2rem; /* Increase padding for larger screens */
+    padding: 1rem 1rem; /* Increase padding for larger screens */
   }
 
   footer {
-    padding: 2rem 2rem; /* Increase padding for footer */
+    padding: 0rem 0rem; /* Increase padding for footer */
   }
 }
 

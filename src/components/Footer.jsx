@@ -59,17 +59,17 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="w-full bg-black text-gray-300">
+    <footer className=" bg-black text-gray-300">
       {/* Decorative Top Border */}
-      {/* <div className="w-full h-px bg-gradient-to-r from-transparent via-gray-800 to-transparent"></div> */}
+      <div className="w-screen h-px bg-gradient-to-r from-transparent via-gray-800 to-transparent"></div>
 
       {/* Main Footer Content */}
-      <div className="w-full px-6 lg:px-12bg-gradient-to-br from-blue-500 to-purple-600 py-16 bg-gray-950">
+      <div className="w-screen px-full lg:px-12 py-16 bg-gray-950">
         <div className="grid grid-cols-1 lg:grid-cols-6 gap-12">
           
           {/* Brand Section - Takes 2 columns */}
-          <div className="lg:col-span-2">
-            <div className="flex items-center gap-3 mb-6">
+          <div className="lg:col-span-2 ">
+            <div className="flex w-screen items-center gap-3 mb-6">
               <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
                 <Scale className="w-7 h-7 text-white" />
               </div>
@@ -164,7 +164,7 @@ export default function Footer() {
       </div>
 
       {/* Bottom Bar */}
-      <div className="w-full bg-black border-t border-gray-900">
+      <div className="w-screen bg-black border-t border-gray-900">
         <div className="px-6 lg:px-12 py-4">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-xs text-gray-600">
