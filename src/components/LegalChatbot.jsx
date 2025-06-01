@@ -26,8 +26,10 @@ export default function LegalChatbot() {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [isUserTyping, setIsUserTyping] = useState(false);
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
+  const messagesContainerRef = useRef(null);
 
   // Suggested questions with categories
   const suggestedQuestions = [
@@ -57,9 +59,13 @@ export default function LegalChatbot() {
     }
   ];
 
+  // Improved scroll behavior - only scroll when new messages are added, not when typing
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+    // Don't scroll if user is typing
+    if (!isUserTyping && bottomRef.current) {
+      bottomRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }, [messages, isUserTyping]);
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -77,6 +83,7 @@ export default function LegalChatbot() {
     
     setMessages(prev => [...prev, userMsg]);
     setInput('');
+    setIsUserTyping(false);
     setIsLoading(true);
     setError(null);
 
@@ -113,7 +120,10 @@ export default function LegalChatbot() {
       console.error('Chat error:', err);
     } finally {
       setIsLoading(false);
-      inputRef.current?.focus();
+      // Keep focus on input after sending
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 100);
     }
   };
 
@@ -132,11 +142,27 @@ export default function LegalChatbot() {
     }
   };
 
+  const handleInputChange = (e) => {
+    setInput(e.target.value);
+    setIsUserTyping(true);
+  };
+
+  const handleInputBlur = () => {
+    // Small delay to check if user is still interacting with input
+    setTimeout(() => {
+      setIsUserTyping(false);
+    }, 200);
+  };
+
+  const handleInputFocus = () => {
+    setIsUserTyping(true);
+  };
+
   return (
     <div className="flex flex-col h-screen bg-gray-900 text-white">
       {/* Messages Container */}
       <div className="flex-1 overflow-hidden bg-gray-900">
-        <div className="h-full overflow-y-auto">
+        <div ref={messagesContainerRef} className="h-full overflow-y-auto scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-900">
           <div className="max-w-4xl mx-auto">
             {/* Welcome Section */}
             {messages.length === 1 && (
@@ -147,7 +173,7 @@ export default function LegalChatbot() {
                     <Scale className="w-10 h-10 text-white" />
                   </div>
                   <h1 className="text-4xl font-bold text-white mb-3">
-                    AI Legal Assistant
+                    Ganesha
                   </h1>
                   <p className="text-gray-400 text-lg">
                     Get instant, AI-powered answers to your legal questions
@@ -250,7 +276,7 @@ export default function LegalChatbot() {
                                 />
                               </div>
                               <span className="text-xs text-gray-500">
-                                {Math.round(msg.confidence * 100)}% confident
+                                                                {Math.round(msg.confidence * 100)}% confident
                               </span>
                             </div>
                           )}
@@ -313,7 +339,7 @@ export default function LegalChatbot() {
         </div>
       </div>
 
-      {/* Input Section */}
+      {/* Input Section - Fixed at bottom */}
       <div className="border-t border-gray-800 bg-gray-900 px-4 py-4">
         <div className="max-w-4xl mx-auto">
           <form onSubmit={(e) => { e.preventDefault(); sendMessage(); }} className="relative">
@@ -321,12 +347,15 @@ export default function LegalChatbot() {
               ref={inputRef}
               type="text"
               value={input}
-              onChange={(e) => setInput(e.target.value)}
+              onChange={handleInputChange}
               onKeyDown={handleKeyDown}
+              onFocus={handleInputFocus}
+              onBlur={handleInputBlur}
               placeholder="Type your legal question here..."
               className="w-full px-6 py-4 pr-14 bg-gray-800 border border-gray-700 rounded-2xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
               disabled={isLoading}
               maxLength={1000}
+              autoComplete="off"
             />
             <button
               type="submit"
