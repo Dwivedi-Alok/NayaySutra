@@ -186,7 +186,8 @@ export default function Navbar() {
                         ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400'
                         : 'text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-700'
                     }`}
-                  >
+                  
+                                    >
                     {language.label}
                   </button>
                 ))}
@@ -197,7 +198,7 @@ export default function Navbar() {
             <div className="hidden md:flex items-center gap-2">
               <button
                 onClick={() => navigate('/login')}
-                               className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200"
+                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200"
               >
                 Login
               </button>
@@ -205,7 +206,7 @@ export default function Navbar() {
                 onClick={() => navigate('/signup')}
                 className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
               >
-                Get Started
+                Sign up
               </button>
             </div>
 
@@ -234,8 +235,16 @@ export default function Navbar() {
         </div>
       </div>
 
+      {/* Mobile menu overlay/backdrop */}
+      {menuOpen && (
+        <div 
+          className="lg:hidden fixed inset-0 bg-black/20 dark:bg-black/40 z-40"
+          onClick={() => setMenuOpen(false)}
+        />
+      )}
+
       {/* Mobile menu */}
-      <div className={`lg:hidden fixed inset-x-0 top-16 transition-all duration-300 ease-in-out ${
+      <div className={`lg:hidden fixed inset-x-0 top-16 transition-all duration-300 ease-in-out z-50 ${
         menuOpen 
           ? 'opacity-100 visible transform translate-y-0' 
           : 'opacity-0 invisible transform -translate-y-4'
@@ -323,7 +332,7 @@ export default function Navbar() {
                 }}
                 className="w-full px-4 py-3 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg"
               >
-                Get Started Free
+                Sign up
               </button>
             </div>
 
@@ -351,12 +360,6 @@ export default function Navbar() {
             </div>
           </div>
         </div>
-
-        {/* Mobile menu backdrop */}
-        <div 
-          className="fixed inset-0 bg-black/20 dark:bg-black/40 backdrop-blur-sm"
-          onClick={() => setMenuOpen(false)}
-        />
       </div>
     </nav>
   );
