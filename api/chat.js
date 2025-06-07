@@ -40,23 +40,34 @@ export default async function handler(req, res) {
     const context = createContext(relevantDocs);
     
     // Step 4: Build conversation history
-    const conversationHistory = messages.slice(0, -1)
+    const lastMessages = messages.slice(-6, -1); // Get last 5 messages for context
+    const conversationHistory = lastMessages
       .map(msg => `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content}`)
       .join('\n');
     
     // Step 5: Create the prompt for Gemini
-    const prompt = `${LEGAL_SYSTEM_PROMPT}
+    const prompt = `
+${LEGAL_SYSTEM_PROMPT}
 
+---
 Context from Legal Documents:
 ${context}
 
-Previous Conversation:
+---
+Conversation:
 ${conversationHistory}
 
-User Question: ${userQuery}
+---
+User Question:
+${userQuery}
 
-Please provide a comprehensive answer based on the legal context provided. If the context doesn't contain relevant information, provide general legal guidance while being clear about the limitations.`;
-    
+---
+Instructions:
+1. If the context above answers the question, cite it.
+2. If not, provide general legal guidance.
+3. Answer concisely and clearly.
+`;
+
     // Step 6: Generate response using Gemini
     console.log('Generating response with Gemini...');
     const result = await geminiModel.generateContent(prompt);
@@ -66,7 +77,7 @@ Please provide a comprehensive answer based on the legal context provided. If th
     // Step 7: Calculate confidence based on document relevance scores
     const avgScore = relevantDocs.length > 0 
       ? relevantDocs.reduce((sum, doc) => sum + doc.score, 0) / relevantDocs.length 
-      : 0;
+      : 1.0;
     
     // Step 8: Format sources
     const sources = relevantDocs
