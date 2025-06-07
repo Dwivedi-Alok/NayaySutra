@@ -93,7 +93,7 @@ app.post('/chat', async (req, res) => {
   try {
     // Validate request body
     if (!req.body || !req.body.messages) {
-      console.log("hi there",res.json());
+    
       return res.status(400).json({ 
         error: 'Bad Request',
         message: 'Messages array is required in request body'
