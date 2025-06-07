@@ -6,6 +6,7 @@ import {
   Navigate,
 } from 'react-router-dom';
 import LegalAidLawyers from './components/LegalAidLawyers';
+import EFiling from './components/EFilling';
 
 import Layout          from './Layout';               // ⬅ contains <Navbar/>
 import HeroSection     from './components/HeroSection';
@@ -150,13 +151,23 @@ export default function App() {
               }
             />
            <Route
-  path="/legal-aid-lawyers"
+              path="/legal-aid-lawyers"
+             element={
+           <Layout title="Legal Aid Lawyers">
+          <LegalAidLawyers />
+
+          </Layout>
+           }
+           />
+        <Route
+  path="/efiling"
   element={
-    <Layout title="Legal Aid Lawyers">
-      <LegalAidLawyers />
+    <Layout title="E-Filing">
+      <EFiling />
     </Layout>
   }
 />
+
 
 
             {/* ───────────── Legacy redirect ───────────── */}
