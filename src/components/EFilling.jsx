@@ -103,7 +103,7 @@ const EFiling = () => {
                 <button
                   type="button"
                   onClick={() => setShowRegistration(true)}
-                  className="text-blue-600 hover:text-blue-700 font-semibold"
+                  className="text-black-600 hover:text-blue-700 font-semibold"
                 >
                   Create Account
                 </button>
