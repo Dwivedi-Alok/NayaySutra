@@ -5,6 +5,7 @@ import {
   Route,
   Navigate,
 } from 'react-router-dom';
+import LegalAidLawyers from './components/LegalAidLawyers';
 
 import Layout          from './Layout';               // ⬅ contains <Navbar/>
 import HeroSection     from './components/HeroSection';
@@ -50,14 +51,7 @@ export default function App() {
             />
 
             {/* ───────────── Features page ───────────── */}
-            <Route
-              path="/features"
-              element={
-                <Layout title="Key Features">
-                  <FeaturesPage />
-                </Layout>
-              }
-            />
+          
 
             {/* ───────────── Chatbot ───────────── */}
             <Route
@@ -155,19 +149,20 @@ export default function App() {
                 </Layout>
               }
             />
-            <Route
-              path="/connect-lawyer"
-              element={
-                <Layout title="Connect Lawyer">
-                  <ConnectLawyer />
-                </Layout>
-              }
-            />
+           <Route
+  path="/legal-aid-lawyers"
+  element={
+    <Layout title="Legal Aid Lawyers">
+      <LegalAidLawyers />
+    </Layout>
+  }
+/>
+
 
             {/* ───────────── Legacy redirect ───────────── */}
             <Route path="/home" element={<Navigate to="/" replace />} />
 
-            {/* ───────────── 404 fallback ───────────── */}
+            
             <Route
               path="*"
               element={

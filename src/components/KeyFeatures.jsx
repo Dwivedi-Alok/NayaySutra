@@ -6,6 +6,7 @@ import {
   PuzzlePieceIcon,
   GlobeAltIcon,
   PhoneArrowDownLeftIcon,
+  UserGroupIcon, // ✅ New icon for Legal Aid Lawyers
 } from '@heroicons/react/24/outline';
 
 /* ---------- single card ---------- */
@@ -40,7 +41,7 @@ function FeatureCard({ icon: Icon, title, to, gradient, iconColor, index }) {
           focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-indigo-400
         `}
       >
-        <div className="flex h-full flex-col items-center gap-4 rounded-2xl  dark:bg-gray-900/90 px-8 py-10 backdrop-blur-sm transition-all group-hover:bg-white/80 dark:group-hover:bg-gray-900/80">
+        <div className="flex h-full flex-col items-center gap-4 rounded-2xl dark:bg-gray-900/90 px-8 py-10 backdrop-blur-sm transition-all group-hover:bg-white/80 dark:group-hover:bg-gray-900/80">
           <div className={`rounded-full bg-gradient-to-br ${gradient} p-4 shadow-lg`}>
             <Icon className={`h-8 w-8 ${iconColor}`} />
           </div>
@@ -91,6 +92,13 @@ export default function KeyFeatures() {
       gradient: 'from-rose-500 to-violet-600',
       iconColor: 'text-white',
     },
+    {
+      icon: UserGroupIcon, // ✅ New Feature Card
+      title: 'Legal Aid Lawyers',
+      to: '/legal-aid-lawyers', // 🔗 Update this route as needed
+      gradient: 'from-yellow-500 to-red-500',
+      iconColor: 'text-white',
+    },
   ];
 
   return (
@@ -119,22 +127,3 @@ export default function KeyFeatures() {
     </section>
   );
 }
-
-/* Add this to your global CSS or tailwind config */
-/*
-@layer utilities {
-  @keyframes fade-up {
-    from {
-      opacity: 0;
-      transform: translateY(24px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-  .animate-fade-up {
-    animation: fade-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  }
-}
-*/

@@ -1,7 +1,25 @@
-/*  src/components/Navbar.jsx  */
+
+/* src/components/Navbar.jsx - Complete Updated Version */
 import { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useLangStore } from '../store/useLangStore';
+import SearchBar from './SearchBar';
+import LogoutModal from './LogoutModal';
+import {
+  HomeIcon,
+  BookIcon,
+  HelpIcon,
+  CommunityIcon,
+  ContactIcon,
+  LanguageIcon,
+  SearchIcon,
+  LoginIcon,
+  SignupIcon,
+  LogoutIcon,
+  SunIcon,
+  MoonIcon,
+  UserIcon
+} from './Icons';
 
 /* ———————————————————  Enhanced SVG logo  ——————————————————— */
 const logoSvg = (
@@ -32,43 +50,6 @@ const logoSvg = (
   </svg>
 );
 
-/* ———————————————————  Icon Components  ——————————————————— */
-const HomeIcon = () => (
-  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-  </svg>
-);
-
-const BookIcon = () => (
-  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-  </svg>
-);
-
-const HelpIcon = () => (
-  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
-  </svg>
-);
-
-const CommunityIcon = () => (
-  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-  </svg>
-);
-
-const ContactIcon = () => (
-  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-  </svg>
-);
-
-const LanguageIcon = () => (
-  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
-  </svg>
-);
-
 /* ———————————————————  Route list with icons  ——————————————————— */
 const navItems = [
   { label: 'Home', path: '/', icon: HomeIcon },
@@ -82,7 +63,15 @@ export default function Navbar() {
   const { lang, setLang } = useLangStore();
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [scrollProgress, setScrollProgress] = useState(0);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [langDropdownOpen, setLangDropdownOpen] = useState(false);
   const navigate = useNavigate();
+
+  // Mock user state - replace with actual auth state
+  const [user, setUser] = useState(null); // { name: 'John Doe', avatar: '/avatar.jpg' }
 
   const languages = [
     { code: 'en', label: 'English', short: 'EN' },
@@ -95,272 +84,468 @@ export default function Navbar() {
     { code: 'mr', label: 'Marathi', short: 'MR' },
   ];
 
-  // Handle scroll effect
+  // Initialize dark mode from localStorage or system preference
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme');
+    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    
+    if (savedTheme === 'dark' || (!savedTheme && systemPrefersDark)) {
+      setDarkMode(true);
+      document.documentElement.classList.add('dark');
+    }
+  }, []);
+
+  // Toggle dark mode
+  const toggleDarkMode = () => {
+    setDarkMode(!darkMode);
+    if (!darkMode) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  };
+
+  // Load saved language preference
+  useEffect(() => {
+    const savedLang = localStorage.getItem('preferredLanguage');
+    if (savedLang) {
+      setLang(savedLang);
+    }
+  }, [setLang]);
+
+  // Save language preference
+  const handleLanguageChange = (language) => {
+    setLang(language);
+    localStorage.setItem('preferredLanguage', language);
+    setLangDropdownOpen(false);
+  };
+
+  // Handle scroll effect and progress
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 10);
+      
+      // Calculate scroll progress
+      const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+      const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+      const scrolled = (winScroll / height) * 100;
+      setScrollProgress(scrolled);
     };
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Close menu on outside click
+  // Keyboard shortcut for search
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (menuOpen && !event.target.closest('nav')) {
-        setMenuOpen(false);
+    const handleKeyDown = (e) => {
+      // Cmd/Ctrl + K to open search
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setSearchOpen(true);
       }
     };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (!e.target.closest('.lang-dropdown')) {
+        setLangDropdownOpen(false);
+      }
+    };
+
     document.addEventListener('click', handleClickOutside);
     return () => document.removeEventListener('click', handleClickOutside);
-  }, [menuOpen]);
+  }, []);
 
-  const navLinkClasses = ({ isActive }) =>
-    `relative flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200
-     ${isActive 
-       ? 'text-blue-600 bg-blue-50 dark:bg-blue-900/20 dark:text-blue-400' 
-       : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:text-blue-400 dark:hover:bg-gray-800'}`;
+  // Handle logout
+  const handleLogout = () => {
+    setShowLogoutModal(false);
+    setUser(null);
+    navigate('/');
+  };
 
   const currentLang = languages.find(l => l.label === lang) || languages[0];
 
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-      scrolled 
-        ? 'bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg shadow-lg' 
-        : 'bg-white dark:bg-gray-900'
-    }`}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16 items-center">
-          {/* Logo / brand */}
-          <NavLink
-            to="/"
-            className="flex items-center gap-3 group"
-            onClick={() => setMenuOpen(false)}
-          >
-            <div className="transform transition-transform duration-300 group-hover:scale-110">
-              {logoSvg}
-            </div>
-            <div>
-              <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                Nayay Sutra
-              </h1>
-              <p className="text-xs text-gray-500 dark:text-gray-400 -mt-1">Legal Assistance</p>
-            </div>
-          </NavLink>
+    <>
+      {/* Scroll Progress Bar */}
+      <div 
+        className="fixed top-0 left-0 h-0.5 bg-gradient-to-r from-blue-600 to-purple-600 transition-all duration-300 z-50"
+        style={{ width: `${scrollProgress}%` }}
+      />
 
-          {/* Desktop navigation */}
-          <div className="hidden lg:flex items-center gap-2">
+      <nav 
+        className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${
+          scrolled 
+            ? 'bg-white/95 dark:bg-gray-900/95 backdrop-blur-md shadow-md' 
+            : 'bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800'
+        }`}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center gap-6">
+          <div className="flex justify-between items-center h-16 gap-6px">
+            {/* Logo */}
+            <NavLink
+              to="/"
+              className="flex items-center space-x-3 flex-shrink-0"
+              onClick={() => setMenuOpen(false)}
+            >
+              <div className="transform transition-transform duration-200 hover:scale-105">
+                {logoSvg}
+              </div>
+              <div className="hidden sm:block">
+                <h1 className="text-lg font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  Nayay Sutra
+                </h1>
+                <p className="text-xs text-gray-500 dark:text-gray-400 -mt-0.5">Legal Assistance</p>
+              </div>
+            </NavLink>
+
+            {/* Desktop Navigation */}
+            <div className="hidden lg:flex items-center space-x-1">
+              {navItems.map(({ label, path, icon: Icon }) => (
+                <NavLink
+                  key={path}
+                  to={path}
+                  className={({ isActive }) =>
+                    `flex items-center  space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                      isActive
+                        ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
+                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800'
+                    }`
+                  }
+                  end={path === '/'}
+                >
+                  <Icon className="w-5 h-5" />
+                  <span>{label}</span>
+                </NavLink>
+              ))}
+            </div>
+
+            {/* Right Side Actions */}
+            <div className="flex items-center">
+              {/* Desktop Actions */}
+              <div className="hidden md:flex items-center space-x-2">
+                {/* Search Button */}
+                <button
+                  onClick={() => setSearchOpen(true)}
+                  className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors group"
+                  aria-label="Open search"
+                >
+                  <SearchIcon className="w-5 h-5 text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-gray-100" />
+                </button>
+
+                {/* Keyboard Shortcut Indicator */}
+                <div className="hidden lg:flex items-center px-3 py-1.5 text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 rounded-lg">
+                  <kbd className="font-sans">⌘</kbd>
+                  <kbd className="font-sans ml-1">K</kbd>
+                </div>
+
+                {/* Dark Mode Toggle */}
+                <button
+                  onClick={toggleDarkMode}
+                  className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                  aria-label="Toggle dark mode"
+                >
+                  {darkMode ? (
+                    <SunIcon className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                  ) : (
+                    <MoonIcon className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                  )}
+                </button>
+
+                {/* Language Selector */}
+                <div className="relative lang-dropdown">
+                  <button
+                    onClick={() => setLangDropdownOpen(!langDropdownOpen)}
+                    className="flex items-center space-x-1 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                  >
+                    <LanguageIcon className="w-4 h-4" />
+                    <span>{currentLang.short}</span>
+                    <svg 
+                      className={`w-3 h-3 transition-transform ${langDropdownOpen ? 'rotate-180' : ''}`} 
+                      fill="none" 
+                      stroke="currentColor" 
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  
+                  {langDropdownOpen && (
+                    <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1">
+                      {languages.map((language) => (
+                        <button
+                          key={language.code}
+                          onClick={() => handleLanguageChange(language.label)}
+                          className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${
+                            language.label === lang
+                              ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
+                              : 'text-gray-700 dark:text-gray-300'
+                          }`}
+                        >
+                          {language.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Auth Section */}
+                {user ? (
+                  <div className="flex items-center space-x-3">
+                    <div className="flex items-center space-x-2 px-3 py-1.5 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                      {user.avatar ? (
+                        <img 
+                          src={user.avatar} 
+                          alt={user.name}
+                          className="w-7 h-7 rounded-full"
+                        />
+                      ) : (
+                        <div className="w-7 h-7 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center">
+                          <span className="text-white text-xs font-medium">
+                            {user.name?.charAt(0).toUpperCase()}
+                          </span>
+                        </div>
+                      )}
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        {user.name}
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => setShowLogoutModal(true)}
+                      className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                      aria-label="Logout"
+                    >
+                      <LogoutIcon className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                    </button>
+                  </div>
+                              ) : (
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={() => navigate('/login')}
+                      className="flex items-center space-x-1 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
+                    >
+                      <LoginIcon className="w-4 h-4" />
+                      <span>Login</span>
+                    </button>
+                    <button
+                      onClick={() => navigate('/signup')}
+                      className="flex items-center space-x-1 px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors shadow-sm"
+                    >
+                      <SignupIcon className="w-4 h-4" />
+                      <span>Sign up</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Mobile Menu Button */}
+              <button
+                onClick={() => setMenuOpen(!menuOpen)}
+                className="lg:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                aria-label="Toggle menu"
+              >
+                <div className="w-5 h-5 relative">
+                  <span className={`absolute inset-x-0 h-0.5 bg-gray-600 dark:bg-gray-400 transform transition-all duration-300 ${
+                    menuOpen ? 'top-2.5 rotate-45' : 'top-0.5'
+                  }`} />
+                  <span className={`absolute inset-x-0 top-2.5 h-0.5 bg-gray-600 dark:bg-gray-400 transition-opacity duration-300 ${
+                    menuOpen ? 'opacity-0' : 'opacity-100'
+                  }`} />
+                  <span className={`absolute inset-x-0 h-0.5 bg-gray-600 dark:bg-gray-400 transform transition-all duration-300 ${
+                    menuOpen ? 'top-2.5 -rotate-45' : 'top-4.5'
+                  }`} />
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile Menu */}
+        <div 
+          className={`lg:hidden transition-all duration-300 ease-in-out ${
+            menuOpen 
+              ? 'max-h-screen opacity-100' 
+              : 'max-h-0 opacity-0 overflow-hidden'
+          }`}
+        >
+          <div className="px-4 py-3 space-y-1 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-200 dark:border-gray-700">
+            {/* Mobile Search Button */}
+            <button
+              onClick={() => {
+                setMenuOpen(false);
+                setSearchOpen(true);
+              }}
+              className="flex items-center space-x-3 w-full px-3 py-2 text-left rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            >
+              <SearchIcon className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Search</span>
+            </button>
+
+            {/* User info (mobile) */}
+            {user && (
+              <div className="flex items-center space-x-3 px-3 py-2 mb-2 bg-white dark:bg-gray-800 rounded-lg">
+                {user.avatar ? (
+                  <img 
+                    src={user.avatar} 
+                    alt={user.name}
+                    className="w-10 h-10 rounded-full"
+                  />
+                ) : (
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center">
+                    <span className="text-white font-medium">
+                      {user.name?.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                )}
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">{user.name}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">View Profile</p>
+                </div>
+              </div>
+            )}
+
+            {/* Mobile Navigation Links */}
             {navItems.map(({ label, path, icon: Icon }) => (
               <NavLink
-                key={label}
+                key={path}
                 to={path}
-                className={navLinkClasses}
+                className={({ isActive }) =>
+                  `flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    isActive
+                      ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
+                      : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
+                  }`
+                }
+                onClick={() => setMenuOpen(false)}
                 end={path === '/'}
               >
-                <Icon />
+                <Icon className="w-5 h-5" />
                 <span>{label}</span>
               </NavLink>
             ))}
-          </div>
 
-          {/* Right-side actions */}
-          <div className="flex items-center gap-3">
-            {/* Language selector (Desktop) */}
-            <div className="hidden md:block relative group">
-              <button className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-                <LanguageIcon />
-                <span>{currentLang.short}</span>
-                <svg className="w-4 h-4 transition-transform group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-              
-              {/* Language dropdown */}
-              <div className="absolute right-0 mt-2 w-48 py-2 bg-white dark:bg-gray-800 rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 border border-gray-200 dark:border-gray-700">
-                {languages.map((language) => (
-                  <button
-                    key={language.code}
-                    onClick={() => setLang(language.label)}
-                    className={`w-full text-left px-4 py-2 text-sm transition-colors ${
-                      language.label === lang
-                        ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400'
-                        : 'text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-700'
-                    }`}
-                  
-                                    >
-                    {language.label}
-                  </button>
-                ))}
-              </div>
-            </div>
+            <hr className="my-3 border-gray-200 dark:border-gray-700" />
 
-            {/* Auth buttons (desktop) */}
-            <div className="hidden md:flex items-center gap-2">
+            {/* Mobile Actions */}
+            <div className="space-y-2">
+              {/* Dark Mode Toggle */}
               <button
-                onClick={() => navigate('/login')}
-                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200"
+                onClick={toggleDarkMode}
+                className="flex items-center justify-between w-full px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
               >
-                Login
-              </button>
-              <button
-                onClick={() => navigate('/signup')}
-                className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
-              >
-                Sign up
-              </button>
-            </div>
-
-            {/* Mobile menu button */}
-            <button
-              className="lg:hidden relative w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-              onClick={(e) => {
-                e.stopPropagation();
-                setMenuOpen(!menuOpen);
-              }}
-              aria-label="Toggle menu"
-            >
-              <div className="w-6 h-5 relative flex flex-col justify-center">
-                <span className={`absolute h-0.5 w-6 bg-gray-600 dark:bg-gray-300 transform transition-all duration-300 ease-in-out ${
-                  menuOpen ? 'rotate-45 translate-y-0' : '-translate-y-2'
-                }`} />
-                <span className={`absolute h-0.5 w-6 bg-gray-600 dark:bg-gray-300 transition-all duration-300 ease-in-out ${
-                  menuOpen ? 'opacity-0' : 'opacity-100'
-                }`} />
-                <span className={`absolute h-0.5 w-6 bg-gray-600 dark:bg-gray-300 transform transition-all duration-300 ease-in-out ${
-                  menuOpen ? '-rotate-45 translate-y-0' : 'translate-y-2'
-                }`} />
-              </div>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Mobile menu overlay/backdrop */}
-      {menuOpen && (
-        <div 
-          className="lg:hidden fixed inset-0 bg-black/20 dark:bg-black/40 z-40"
-          onClick={() => setMenuOpen(false)}
-        />
-      )}
-
-      {/* Mobile menu */}
-      <div className={`lg:hidden fixed inset-x-0 top-16 transition-all duration-300 ease-in-out z-50 ${
-        menuOpen 
-          ? 'opacity-100 visible transform translate-y-0' 
-          : 'opacity-0 invisible transform -translate-y-4'
-      }`}>
-        <div className="bg-white dark:bg-gray-900 shadow-xl border-t border-gray-200 dark:border-gray-800">
-          <div className="max-w-7xl mx-auto px-4 py-4 space-y-2">
-            {/* Mobile navigation links */}
-            {navItems.map(({ label, path, icon: Icon }) => (
-              <NavLink
-                key={label}
-                to={path}
-                className={({ isActive }) =>
-                  `flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
-                    isActive
-                      ? 'bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 text-blue-600 dark:text-blue-400 font-medium'
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
-                  }`
-                }
-                end={path === '/'}
-                onClick={() => setMenuOpen(false)}
-              >
-                <div className={`p-2 rounded-lg ${
-                  window.location.pathname === path 
-                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white' 
-                    : 'bg-gray-100 dark:bg-gray-800'
-                }`}>
-                  <Icon />
+                <div className="flex items-center space-x-3">
+                  {darkMode ? (
+                    <SunIcon className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                  ) : (
+                    <MoonIcon className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                  )}
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {darkMode ? 'Light Mode' : 'Dark Mode'}
+                  </span>
                 </div>
-                <span className="font-medium">{label}</span>
-              </NavLink>
-            ))}
+                <div className={`relative w-11 h-6 rounded-full transition-colors ${
+                  darkMode ? 'bg-blue-600' : 'bg-gray-300'
+                }`}>
+                  <div className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
+                    darkMode ? 'translate-x-5' : 'translate-x-0'
+                  }`} />
+                </div>
+              </button>
 
-            {/* Divider */}
-            <div className="border-t border-gray-200 dark:border-gray-700 my-4" />
+              {/* Language Selection */}
+              <div className="px-3 py-2">
+                <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-2">
+                  Select Language
+                </p>
+                <div className="grid grid-cols-2 gap-2">
+                  {languages.slice(0, 4).map((language) => (
+                    <button
+                      key={language.code}
+                      onClick={() => {
+                        handleLanguageChange(language.label);
+                        setMenuOpen(false);
+                      }}
+                      className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
+                        language.label === lang
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
+                      }`}
+                    >
+                      {language.label}
+                    </button>
+                  ))}
+                </div>
+                <button
+                  className="mt-2 text-sm text-blue-600 dark:text-blue-400 hover:underline"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  View all languages →
+                </button>
+              </div>
 
-            {/* Language selector (Mobile) */}
-            <div className="px-4 py-2">
-              <label className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Language
-              </label>
-              <div className="mt-2 grid grid-cols-2 gap-2">
-                {languages.slice(0, 4).map((language) => (
+              {/* Auth Buttons (Mobile) */}
+              {user ? (
+                <button
+                  onClick={() => {
+                    setMenuOpen(false);
+                    setShowLogoutModal(true);
+                  }}
+                  className="flex items-center justify-center space-x-2 w-full px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
+                >
+                  <LogoutIcon className="w-4 h-4" />
+                  <span>Logout</span>
+                </button>
+              ) : (
+                <div className="space-y-2">
                   <button
-                    key={language.code}
                     onClick={() => {
-                      setLang(language.label);
                       setMenuOpen(false);
+                      navigate('/login');
                     }}
-                    className={`px-3 py-2 text-sm font-medium rounded-lg transition-all ${
-                      language.label === lang
-                        ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white'
-                        : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
-                    }`}
+                    className="flex items-center justify-center space-x-2 w-full px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 rounded-lg transition-colors"
                   >
-                    {language.label}
+                    <LoginIcon className="w-4 h-4" />
+                    <span>Login</span>
                   </button>
-                ))}
-              </div>
-              <button
-                onClick={() => {
-                  // Show all languages modal
-                  setMenuOpen(false);
-                }}
-                className="mt-2 w-full text-center text-sm text-blue-600 dark:text-blue-400 hover:underline"
-              >
-                View all languages →
-              </button>
-            </div>
-
-            {/* Auth buttons (mobile) */}
-            <div className="px-4 py-2 space-y-2">
-              <button
-                onClick={() => {
-                  setMenuOpen(false);
-                  navigate('/login');
-                }}
-                className="w-full px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-              >
-                Login to your account
-              </button>
-              <button
-                onClick={() => {
-                  setMenuOpen(false);
-                  navigate('/signup');
-                }}
-                className="w-full px-4 py-3 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg"
-              >
-                Sign up
-              </button>
-            </div>
-
-            {/* Social links (mobile) */}
-            <div className="px-4 py-2">
-              <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
-                Follow Us
-              </p>
-              <div className="flex gap-3">
-                {['twitter', 'facebook', 'linkedin', 'instagram'].map((social) => (
-                  <a
-                    key={social}
-                    href={`#${social}`}
-                    className="w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-                    onClick={(e) => {
-                      e.preventDefault();
+                  <button
+                    onClick={() => {
                       setMenuOpen(false);
+                      navigate('/signup');
                     }}
+                    className="flex items-center justify-center space-x-2 w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
                   >
-                    <span className="sr-only">{social}</span>
-                    <div className="w-5 h-5 bg-gray-400 dark:bg-gray-600 rounded" />
-                  </a>
-                ))}
-              </div>
+                    <SignupIcon className="w-4 h-4" />
+                    <span>Create Account</span>
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
-      </div>
-    </nav>
+      </nav>
+
+      {/* Search Bar Modal */}
+      <SearchBar 
+        isOpen={searchOpen}
+        onClose={() => setSearchOpen(false)}
+      />
+
+      {/* Logout Confirmation Modal */}
+      <LogoutModal 
+        isOpen={showLogoutModal}
+        onClose={() => setShowLogoutModal(false)}
+        onConfirm={handleLogout}
+      />
+
+     
+
+    </>
   );
 }

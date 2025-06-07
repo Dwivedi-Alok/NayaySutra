@@ -162,6 +162,14 @@ export default function Navbar() {
               </NavLink>
             ))}
           </div>
+            <div className="hidden md:flex items-center gap-2">
+              <button
+                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200"
+                onClick={() => window.location.href = 'https://filing.ecourts.gov.in/pdedev/'}
+              >
+               e filling
+              </button>
+            </div>
 
           {/* Right-side actions */}
           <div className="flex items-center gap-3">
@@ -195,6 +203,7 @@ export default function Navbar() {
             </div>
 
             {/* Auth buttons (desktop) */}
+
             <div className="hidden md:flex items-center gap-2">
               <button
                 onClick={() => navigate('/login')}
