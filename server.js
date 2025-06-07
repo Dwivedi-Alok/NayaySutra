@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import { log } from 'console';
 
 // Load environment variables FIRST
 dotenv.config({ path: '.env.local' });
@@ -34,7 +35,7 @@ app.use(cors({
   origin: ['http://localhost:5173', 'http://localhost:3000'], // Add your frontend URLs
   credentials: true
 }));
-app.use(express.json({ limit: '10mb' }));
+app.use(express.json({ limit: '100mb' }));
 
 // Request logging middleware (helpful for debugging)
 app.use((req, res, next) => {
@@ -92,6 +93,7 @@ app.post('/chat', async (req, res) => {
   try {
     // Validate request body
     if (!req.body || !req.body.messages) {
+      console.log("hi there",res.json());
       return res.status(400).json({ 
         error: 'Bad Request',
         message: 'Messages array is required in request body'

@@ -682,8 +682,8 @@ input::placeholder, textarea::placeholder {
 /* Dark mode specific enhancements */
 @media (prefers-color-scheme: dark) {
   .glass {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    background: rgba(235, 230, 230, 0.907);
+    border: 1px solid rgba(236, 230, 230, 0.05);
   }
   
   .hero-section {

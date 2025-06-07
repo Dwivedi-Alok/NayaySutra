@@ -15,6 +15,46 @@ import {
   BriefcaseIcon
 } from '@heroicons/react/24/outline';
 
+// Confidence Indicator Component
+const ConfidenceIndicator = ({ confidence }) => {
+  if (confidence === null || confidence === undefined) return null;
+  
+  const percentage = Math.round(confidence * 100);
+  const getConfidenceColor = () => {
+    if (percentage >= 80) return 'from-green-500 to-green-600';
+    if (percentage >= 60) return 'from-blue-500 to-blue-600';
+    if (percentage >= 40) return 'from-yellow-500 to-yellow-600';
+    return 'from-orange-500 to-red-500';
+  };
+  
+  const getConfidenceLabel = () => {
+    if (percentage >= 80) return 'High confidence';
+    if (percentage >= 60) return 'Moderate confidence';
+    if (percentage >= 40) return 'Low confidence';
+    return 'Very low confidence';
+  };
+  
+  return (
+    <div className="mt-3">
+      <div className="flex items-center gap-3">
+        <div className="flex-1">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-xs text-gray-400">{getConfidenceLabel()}</span>
+            <span className="text-xs text-gray-500 font-medium">{percentage}%</span>
+          </div>
+          <div className="bg-gray-700 rounded-full h-2 overflow-hidden">
+            <div 
+              className={`h-full bg-gradient-to-r ${getConfidenceColor()} transition-all duration-700 ease-out`}
+              style={{ width: `${percentage}%` }}
+            />
+          </div>
+        </div>
+        <Info className="w-4 h-4 text-gray-500 cursor-help" title="AI confidence in this response" />
+      </div>
+    </div>
+  );
+};
+
 export default function LegalChatbot() {
   const [messages, setMessages] = useState([
     { 
@@ -105,13 +145,30 @@ export default function LegalChatbot() {
       
       const data = await res.json();
       
+      // Debug logging to check what's being received
+      console.log('API Response:', data);
+      
+      // Ensure confidence is a valid number between 0 and 1
+      let confidence = data.confidence;
+      if (typeof confidence === 'number') {
+        // If confidence is already a percentage (0-100), convert to decimal
+        if (confidence > 1) {
+          confidence = confidence / 100;
+        }
+        // Ensure it's between 0 and 1
+        confidence = Math.max(0, Math.min(1, confidence));
+      } else {
+        // Default confidence if not provided or invalid
+        confidence = null;
+      }
+      
       setMessages(prev => [
         ...prev,
         { 
           role: 'assistant', 
           content: data.answer || 'I apologize, but I couldn\'t generate a response.',
           sources: data.sources,
-          confidence: data.confidence,
+          confidence: confidence,
           timestamp: new Date()
         },
       ]);
@@ -247,8 +304,7 @@ export default function LegalChatbot() {
                           <p className="text-gray-100 leading-relaxed whitespace-pre-wrap">
                             {msg.content}
                           </p>
-                          
-                          {/* Sources */}
+                                          {/* Sources */}
                           {msg.sources && msg.sources.length > 0 && (
                             <div className="mt-4 pt-4 border-t border-gray-700">
                               <p className="text-xs font-medium text-gray-400 mb-2 flex items-center gap-2">
@@ -266,20 +322,8 @@ export default function LegalChatbot() {
                             </div>
                           )}
 
-                          {/* Confidence */}
-                          {msg.confidence !== undefined && (
-                            <div className="mt-3 flex items-center gap-2">
-                              <div className="flex-1 bg-gray-700 rounded-full h-1.5 overflow-hidden">
-                                <div 
-                                  className="h-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-500"
-                                  style={{ width: `${Math.round(msg.confidence * 100)}%` }}
-                                />
-                              </div>
-                              <span className="text-xs text-gray-500">
-                                                                {Math.round(msg.confidence * 100)}% confident
-                              </span>
-                            </div>
-                          )}
+                          {/* Confidence Indicator */}
+                          <ConfidenceIndicator confidence={msg.confidence} />
                         </div>
                         <div className="flex items-center gap-3 mt-2 px-1">
                           <span className="text-xs text-gray-500">
