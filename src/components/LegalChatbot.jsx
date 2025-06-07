@@ -59,7 +59,7 @@ export default function LegalChatbot() {
   const [messages, setMessages] = useState([
     { 
       role: 'assistant', 
-      content: 'Hello! I\'m your AI legal assistant. I can help answer questions about laws, regulations, and legal procedures. How can I assist you today?',
+      content: 'Hello! I am Ganesha, your AI assistant. How can I help you today?',
       timestamp: new Date()
     },
   ]);

@@ -20,8 +20,7 @@ export const embeddingModel = genAI.getGenerativeModel({
 });
 
 // System prompt for legal assistant
-export const LEGAL_SYSTEM_PROMPT = `You are an AI legal assistant specializing in Indian law and legal procedures.
-
+export const LEGAL_SYSTEM_PROMPT = `
 Your Core Responsibilities:
 1. Provide accurate and updated legal information based on Indian laws, statutes, and judicial precedents.
 2. Offer step-by-step guidance on legal procedures, including FIR filing, bail applications, trial processes, appeals, and more.

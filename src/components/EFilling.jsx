@@ -313,9 +313,11 @@ const EFiling = () => {
             className="bg-white rounded-2xl shadow-2xl p-8"
           >
             <h2 className="text-2xl font-bold mb-6 text-black">User Registration</h2>
+            <h2 className="text-2xl font-bold mb-6 text-black">User Registration</h2>
 
             {!registrationType ? (
               <div className="space-y-4">
+                <h3 className="text-lg font-semibold mb-4 text-black">Select Registration Type</h3>
                 <h3 className="text-lg font-semibold mb-4 text-black">Select Registration Type</h3>
                 {[
                   { type: 'advocate', label: 'Advocate', icon: '⚖️' },
@@ -331,6 +333,7 @@ const EFiling = () => {
                   >
                     <span className="text-3xl">{option.icon}</span>
                     <span className="font-semibold text-black">{option.label}</span>
+                    <span className="font-semibold text-black">{option.label}</span>
                   </motion.button>
                 ))}
               </div>
@@ -341,8 +344,10 @@ const EFiling = () => {
                   className="text-blue-600 hover:text-blue-700 mb-4"
                 >
                   ← Back
+
                 </button>
 
+                <h3 className="text-lg font-semibold mb-4 text-black">
                 <h3 className="text-lg font-semibold mb-4 text-black">
                   Registration as {registrationType === 'advocate' ? 'Advocate' : 
                                  registrationType === 'party' ? 'Party-in-Person' : 'Police Station'}
@@ -417,6 +422,7 @@ const EFiling = () => {
                         <option key={key} value={key}>{value.name}</option>
                       ))}
                     </select>
+
                   </div>
 
                   <div>
