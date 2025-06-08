@@ -11,7 +11,7 @@ dotenv.config({ path: '.env.local' });
 // Verify environment variables are loaded
 console.log('🔧 Environment Check:', {
   NODE_ENV: process.env.NODE_ENV || 'development',
-  PORT: process.env.PORT || 3001,
+  PORT: process.env.VITE_API_URL || 3001,
   GEMINI_API_KEY: process.env.GEMINI_API_KEY ? '✅ Set' : '❌ Missing',
   PINECONE_API_KEY: process.env.PINECONE_API_KEY ? '✅ Set' : '❌ Missing',
   PINECONE_INDEX_NAME: process.env.PINECONE_INDEX_NAME || 'Not set',
@@ -42,8 +42,8 @@ const __dirname = dirname(__filename);
 
 const app = express();
 
-// const PORT = process.env.PORT || 3001;
-const PORT = process.env.VITE_API_URL;
+const PORT = process.env.PORT || 3001;
+// const PORT = process.env.VITE_API_URL || "3001";
 
 // Middleware
 // Update CORS configuration
