@@ -15,6 +15,9 @@ import {
   BriefcaseIcon
 } from '@heroicons/react/24/outline';
 
+// API Base URL - Change this to match your backend server
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
 // Confidence Indicator Component
 const ConfidenceIndicator = ({ confidence }) => {
   if (confidence === null || confidence === undefined) return null;
@@ -128,7 +131,8 @@ export default function LegalChatbot() {
     setError(null);
 
     try {
-      const res = await fetch('/api/chat', {
+      // Use the backend URL with /chatbot endpoint
+      const res = await fetch(`${API_BASE_URL}/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -304,7 +308,7 @@ export default function LegalChatbot() {
                           <p className="text-gray-100 leading-relaxed whitespace-pre-wrap">
                             {msg.content}
                           </p>
-                                          {/* Sources */}
+                          {/* Sources */}
                           {msg.sources && msg.sources.length > 0 && (
                             <div className="mt-4 pt-4 border-t border-gray-700">
                               <p className="text-xs font-medium text-gray-400 mb-2 flex items-center gap-2">
