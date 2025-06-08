@@ -46,20 +46,47 @@ const PORT = process.env.PORT || 3001;
 // Middleware
 // Update CORS configuration
 app.use(cors({
-  origin: [
-    'http://localhost:5173',
-    'http://localhost:3000',
-    'http://localhost:5174',
-    'https://nayay-sutra-di6o.vercel.app',
-    'https://nayaysutra.onrender.com',
-     'nayay-sutra-git-main-dwivedi-aloks-projects.vercel.app',
-    ' nayay-sutra-r23e8e359-dwivedi-aloks-projects.vercel.app',
-    'https://nayay-sutra.vercel.app', // Any other domains
-    /\.vercel\.app$/ // Allow all Vercel preview deployments
-  ],
+  origin: function(origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    // List of allowed origins
+    const allowedOrigins = [
+      'http://localhost:5173',
+      'http://localhost:3000',
+      'http://localhost:5174',
+      'http://localhost:5175', // Fixed: removed trailing slash
+      'https://nayay-sutra-di6o.vercel.app',
+      'https://nayaysutra.onrender.com',
+      'https://nayay-sutra-git-main-dwivedi-aloks-projects.vercel.app', // Fixed: added https://
+      'https://nayay-sutra-r23e8e359-dwivedi-aloks-projects.vercel.app', // Fixed: removed leading space
+      'https://nayay-sutra.vercel.app'
+    ];
+    
+    // Check exact match first
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    
+    // Allow any localhost port for development
+    if (origin.startsWith('http://localhost:')) {
+      return callback(null, true);
+    }
+    
+    // Allow any vercel.app domain
+    if (origin.includes('.vercel.app')) {
+      return callback(null, true);
+    }
+    
+    // Log rejected origins for debugging
+    console.log('CORS rejected origin:', origin);
+    callback(new Error('Not allowed by CORS'));
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-api-key'],
+  preflightContinue: false,
+  optionsSuccessStatus: 204
 }));
 app.use(express.json({ limit: '100mb' }));
 
