@@ -43,6 +43,28 @@ export const LANGUAGES = [
       { code: 'bn-BD', label: 'Bangladeshi Bengali' }
     ]
   },
+  {
+  code: 'as',
+  label: 'Assamese',
+  native: 'অসমীয়া',
+  flag: '🇮🇳',
+  dialects: [{ code: 'as-IN', label: 'Standard Assamese' }]
+},
+{
+  code: 'ne',
+  label: 'Nepali',
+  native: 'नेपाली',
+  flag: '🇮🇳',
+  dialects: [{ code: 'ne-IN', label: 'Indian Nepali' }]
+},
+{
+  code: 'sd',
+  label: 'Sindhi',
+  native: 'سنڌي',
+  flag: '🇮🇳',
+  dialects: [{ code: 'sd-IN', label: 'Standard Sindhi' }]
+},
+
   { code: 'gu', label: 'Gujarati', native: 'ગુજરાતી', flag: '🇮🇳', dialects: [{ code: 'gu-IN', label: 'Standard Gujarati' }] },
   { code: 'te', label: 'Telugu', native: 'తెలుగు', flag: '🇮🇳', dialects: [{ code: 'te-IN', label: 'Standard Telugu' }] },
   { code: 'kn', label: 'Kannada', native: 'ಕನ್ನಡ', flag: '🇮🇳', dialects: [{ code: 'kn-IN', label: 'Standard Kannada' }] },
@@ -61,7 +83,15 @@ export const QUICK_PHRASES = [
   { en: "I want to appeal this decision", category: "Appeal" },
   { en: "When is my next hearing?", category: "Court" },
   { en: "I need legal aid", category: "Legal Help" },
-  { en: "How much are the court fees?", category: "Fees" }
+  { en: "How much are the court fees?", category: "Fees" },
+  { en: "How do I file an RTI?", category: "Right to Information" },
+{ en: "Can I get bail?", category: "Legal Help" },
+{ en: "What is the FIR process?", category: "Filing" },
+{ en: "What is my case status?", category: "Court" },
+{ en: "Can I get a copy of my judgment?", category: "Documents" },
+{ en: "Where is the family court?", category: "General" },
+{ en: "I want to report domestic violence", category: "Protection" }
+
 ];
 
 export const LEGAL_TEMPLATES = [
