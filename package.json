@@ -33,7 +33,6 @@
     "framer-motion": "^12.16.0",
     "jspdf": "^3.0.1",
     "langchain": "^0.3.27",
-    "mammoth": "^1.9.1",
     "node-fetch": "^3.3.2",
     "openai": "^4.103.0",
     "pacman": "^0.10.4",
