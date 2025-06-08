@@ -1,47 +1,51 @@
+// src/services/translation.js
+
+// Get API URL from environment or use default
+const API_URL = import.meta.env.VITE_API_URL || 'https://nayaysutra.onrender.com';
+
 export const translateText = async (text, sourceLang, targetLang, dialect) => {
   try {
-    // Get bearer token from backend
-    const tokenRes = await fetch('/api/bhashini-token');
-    const { token } = await tokenRes.json();
+    // Call YOUR backend endpoint, not Bhashini directly
+    const response = await fetch(`${API_URL}/api/translate`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        text,
+        sourceLang,
+        targetLang,
+        dialect // Your backend handles dialect if needed
+      })
+    });
 
-    // Call Bhashini API with dialect support
-    const bhashiniRes = await fetch(
-      'https://dhruva-api.bhashini.gov.in/services/inference/pipeline',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          pipelineTasks: [
-            {
-              taskType: 'translation',
-              config: {
-                language: {
-                  sourceLanguage: sourceLang,
-                  targetLanguage: targetLang,
-                  ...(dialect && { targetDialect: dialect })
-                }
-              }
-            }
-          ],
-          inputData: {
-            input: [{ source: text }]
-          }
-        })
-      }
-    );
+    if (!response.ok) {
+      const errorData = await response.text();
+      console.error('Translation API error:', response.status, errorData);
+      throw new Error(`Translation failed: ${response.status}`);
+    }
 
-    const data = await bhashiniRes.json();
-    const output =
-      data?.pipelineResponse?.[0]?.output?.[0]?.target ||
-      data?.pipelineResponse?.[0]?.output?.[0]?.translation || '';
-
-    return { success: true, translation: output };
+    const data = await response.json();
+    
+    // Your backend returns { success, translation, metadata }
+    if (data.success) {
+      return { 
+        success: true, 
+        translation: data.translation 
+      };
+    } else {
+      return { 
+        success: false, 
+        error: data.error || 'Translation failed' 
+      };
+    }
+    
   } catch (error) {
     console.error('Translation error:', error);
-    return { success: false, error: error.message };
+    return { 
+      success: false, 
+      error: error.message || 'Network error' 
+    };
   }
 };
 
@@ -52,11 +56,36 @@ export const textToSpeech = (text, lang, dialect) => {
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = dialect || `${lang}-IN`;
     
+    // Add some configuration for better speech
+    utterance.rate = 0.9; // Slightly slower for clarity
+    utterance.pitch = 1;
+    utterance.volume = 1;
+    
     return {
       speak: () => window.speechSynthesis.speak(utterance),
       stop: () => window.speechSynthesis.cancel(),
+      pause: () => window.speechSynthesis.pause(),
+      resume: () => window.speechSynthesis.resume(),
       utterance
     };
   }
   return null;
+};
+
+// Additional helper function to check if translation service is available
+export const checkTranslationService = async () => {
+  try {
+    const response = await fetch(`${API_URL}/health`);
+    const data = await response.json();
+    return {
+      available: data.apiKeys?.bhashini_inference === 'configured',
+      status: data.status
+    };
+  } catch (error) {
+    return {
+      available: false,
+      status: 'error',
+      error: error.message
+    };
+  }
 };
