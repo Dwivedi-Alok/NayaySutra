@@ -1,3 +1,4 @@
+// chat.js
 import { geminiModel, LEGAL_SYSTEM_PROMPT } from './utils/gemini.js';
 import { generateEmbedding, createContext } from './utils/embeddings.js';
 import { searchSimilarDocuments } from './utils/vectorStore.js';
@@ -10,9 +11,14 @@ const corsHeaders = {
 };
 
 export default async function handler(req, res) {
+  // Set CORS headers for all responses
+  Object.keys(corsHeaders).forEach(key => {
+    res.setHeader(key, corsHeaders[key]);
+  });
+
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
-    return res.status(200).headers(corsHeaders).end();
+    return res.status(200).end();
   }
   
   if (req.method !== 'POST') {

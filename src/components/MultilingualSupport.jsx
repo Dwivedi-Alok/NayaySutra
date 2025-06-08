@@ -7,7 +7,7 @@ import LegalTemplates from './legal-translation/LegalTemplates';
 import QuickPhrases from './legal-translation/QuickPhrases';
 import TranslationHistory from './legal-translation/TranslationHistory';
 import { LANGUAGES } from './legal-translation/constants';
-import { translateText, textToSpeech } from '../utils/translation.js';
+import { translateText, textToSpeech } from '../utils/translation2.js';
 import { performOCR, extractTextFromPDF, extractTextFromWord } from '../utils/fileProcessing';
 import { exportAsPDF, exportAsWord } from '../utils/export';
 
