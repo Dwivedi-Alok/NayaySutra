@@ -51,6 +51,7 @@ app.use(cors({
     'http://localhost:3000',
     'http://localhost:5174',
     'https://nayay-sutra-di6o.vercel.app',
+    'https://nayaysutra.onrender.com',
      'nayay-sutra-git-main-dwivedi-aloks-projects.vercel.app',
     ' nayay-sutra-r23e8e359-dwivedi-aloks-projects.vercel.app',
     'https://nayay-sutra.vercel.app', // Any other domains
