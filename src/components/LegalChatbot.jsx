@@ -15,8 +15,8 @@ import {
   BriefcaseIcon
 } from '@heroicons/react/24/outline';
 
-// Remove or comment out the API_BASE_URL since we'll use relative paths
-// const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+// API Base URL - Change this to match your backend server
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
 // Confidence Indicator Component
 const ConfidenceIndicator = ({ confidence }) => {
@@ -131,13 +131,10 @@ export default function LegalChatbot() {
     setError(null);
 
     try {
-      // Use relative path for API route
-      const res = await fetch('/api/chat', {
+      // Use the backend URL with /chatbot endpoint
+      const res = await fetch(`${API_BASE_URL}/chat`, {
         method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           messages: [...messages, userMsg].map(m => ({
             role: m.role,
@@ -147,8 +144,7 @@ export default function LegalChatbot() {
       });
 
       if (!res.ok) {
-        const errorData = await res.json().catch(() => null);
-        throw new Error(errorData?.message || `HTTP error! status: ${res.status}`);
+        throw new Error(`HTTP error! status: ${res.status}`);
       }
       
       const data = await res.json();
@@ -181,8 +177,8 @@ export default function LegalChatbot() {
         },
       ]);
     } catch (err) {
+      setError('Sorry, I encountered an error. Please try again.');
       console.error('Chat error:', err);
-      setError(err.message || 'Sorry, I encountered an error. Please try again.');
     } finally {
       setIsLoading(false);
       // Keep focus on input after sending
