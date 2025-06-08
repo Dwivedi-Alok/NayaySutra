@@ -43,6 +43,7 @@ const __dirname = dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+
 // Middleware
 // Update CORS configuration
 app.use(cors({
