@@ -44,9 +44,21 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Middleware
+// Update CORS configuration
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:3000', 'http://localhost:5174'],
-  credentials: true
+  origin: [
+    'http://localhost:5173',
+    'http://localhost:3000',
+    'http://localhost:5174',
+    'https://nayay-sutra-di6o.vercel.app',
+     'nayay-sutra-git-main-dwivedi-aloks-projects.vercel.app',
+    ' nayay-sutra-r23e8e359-dwivedi-aloks-projects.vercel.app',
+    'https://nayay-sutra.vercel.app', // Any other domains
+    /\.vercel\.app$/ // Allow all Vercel preview deployments
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json({ limit: '100mb' }));
 
@@ -70,7 +82,7 @@ try {
   };
 }
 
-// Bhashini API Configuration
+
 const BHASHINI_INFERENCE_URL = 'https://dhruva-api.bhashini.gov.in/services/inference/pipeline';
 const BHASHINI_AUTH_URL = 'https://auth.ulc.bhashini.gov.in/api/v1/udyat/token';
 

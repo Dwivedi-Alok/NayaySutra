@@ -33,7 +33,8 @@ const Signup = lazy(() => import('./components/Signup'));       // ← NEW
 
 /* 404 fallback */
 const NotFound = lazy(() => import('./components/NotFound'));
-
+// In your component or App.js
+console.log('API URL:', import.meta.env.VITE_API_URL || 'http://localhost:3001');
 export default function App() {
   return (
     <BrowserRouter>
