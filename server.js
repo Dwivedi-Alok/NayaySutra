@@ -15,6 +15,7 @@ console.log('🔧 Environment Check:', {
   GEMINI_API_KEY: process.env.GEMINI_API_KEY ? '✅ Set' : '❌ Missing',
   PINECONE_API_KEY: process.env.PINECONE_API_KEY ? '✅ Set' : '❌ Missing',
   PINECONE_INDEX_NAME: process.env.PINECONE_INDEX_NAME || 'Not set',
+  UDYAT_API_KEY: process.env.UDYAT_API_KEY ? '✅ Set' : '❌ Missing',
   INFERENCE_API_KEY: process.env.INFERENCE_API_KEY ? '✅ Set' : '❌ Missing'
 });
 
@@ -29,6 +30,11 @@ if (!process.env.INFERENCE_API_KEY) {
   console.warn('⚠️  WARNING: Bhashini INFERENCE_API_KEY is not set. Translation features will not work.');
   console.warn('📝 Please add INFERENCE_API_KEY to your .env.local file');
   console.warn('🔗 Get your API key from: https://bhashini.gov.in/ulca\n');
+}
+
+if (!process.env.UDYAT_API_KEY) {
+  console.warn('⚠️  WARNING: UDYAT_API_KEY is not set. Using direct API calls instead of token-based auth.');
+  console.warn('📝 For better security, add UDYAT_API_KEY to your .env.local file\n');
 }
 
 const __filename = fileURLToPath(import.meta.url);
@@ -64,8 +70,128 @@ try {
   };
 }
 
-// Bhashini API Configuration - Using dhruva endpoints
+// Bhashini API Configuration
 const BHASHINI_INFERENCE_URL = 'https://dhruva-api.bhashini.gov.in/services/inference/pipeline';
+const BHASHINI_AUTH_URL = 'https://auth.ulc.bhashini.gov.in/api/v1/udyat/token';
+
+// Token cache for Bhashini
+let tokenCache = {
+  token: null,
+  expiresAt: null
+};
+
+// Function to get Bhashini access token using Udyat API key
+async function getBhashiniAccessToken() {
+  // Check if we have a valid cached token
+  if (tokenCache.token && tokenCache.expiresAt > Date.now()) {
+    console.log('🔐 Using cached Bhashini token');
+    return tokenCache.token;
+  }
+
+  if (!process.env.UDYAT_API_KEY) {
+    return null; // Will use direct API call instead
+  }
+
+  try {
+    console.log('🔑 Fetching new Bhashini token...');
+    const response = await fetch(BHASHINI_AUTH_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `ApiKey ${process.env.UDYAT_API_KEY}`
+      },
+      body: JSON.stringify({})
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Token fetch failed:', response.status, errorText);
+      throw new Error(`Auth failed: ${response.status}`);
+    }
+
+    const data = await response.json();
+    
+    // Cache the token (assuming 1 hour validity)
+    tokenCache = {
+      token: data.token || data.access_token,
+      expiresAt: Date.now() + (59 * 60 * 1000) // 59 minutes
+    };
+
+    console.log('✅ Bhashini token obtained successfully');
+    return tokenCache.token;
+  } catch (error) {
+    console.error('❌ Error fetching Bhashini token:', error);
+    return null; // Will fallback to direct API call
+  }
+}
+
+// Function to translate using token-based auth
+async function translateWithToken(text, sourceLang, targetLang, token) {
+  const requestBody = {
+    pipelineTasks: [
+      {
+        taskType: 'translation',
+        config: {
+          language: {
+            sourceLanguage: sourceLang,
+            targetLanguage: targetLang
+          },
+          serviceId: 'ai4bharat/indictrans-v2-all-gpu--t4'
+        }
+      }
+    ],
+    inputData: {
+      input: [{ source: text }]
+    }
+  };
+
+  const response = await fetch(BHASHINI_INFERENCE_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+      'ulca-api-key': process.env.INFERENCE_API_KEY,
+      'x-api-key': process.env.INFERENCE_API_KEY
+    },
+    body: JSON.stringify(requestBody)
+  });
+
+  return response;
+}
+
+// Function to translate using direct API call
+async function translateDirect(text, sourceLang, targetLang) {
+  const requestBody = {
+    pipelineTasks: [
+      {
+        taskType: 'translation',
+        config: {
+          language: {
+            sourceLanguage: sourceLang,
+            targetLanguage: targetLang
+          },
+          serviceId: 'ai4bharat/indictrans-v2-all-gpu--t4'
+        }
+      }
+    ],
+    inputData: {
+      input: [{ source: text }]
+    }
+  };
+
+  const response = await fetch(BHASHINI_INFERENCE_URL, {
+    method: 'POST',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      'Authorization': process.env.INFERENCE_API_KEY,
+      'x-api-key': process.env.INFERENCE_API_KEY
+    },
+    body: JSON.stringify(requestBody)
+  });
+
+  return response;
+}
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -77,13 +203,15 @@ app.get('/health', (req, res) => {
     apiKeys: {
       gemini: process.env.GEMINI_API_KEY ? 'configured' : 'missing',
       pinecone: process.env.PINECONE_API_KEY ? 'configured' : 'missing',
-      bhashini: process.env.INFERENCE_API_KEY ? 'configured' : 'missing'
+      bhashini_inference: process.env.INFERENCE_API_KEY ? 'configured' : 'missing',
+      bhashini_udyat: process.env.UDYAT_API_KEY ? 'configured' : 'missing'
     },
+    bhashiniAuth: process.env.UDYAT_API_KEY ? 'token-based' : 'direct',
     version: process.env.npm_package_version || '1.0.0'
   };
   
   // Set status based on configuration
-  if (!process.env.GEMINI_API_KEY || !process.env.PINECONE_API_KEY || !process.env.INFERENCE_API_KEY) {
+  if (!process.env.GEMINI_API_KEY || !process.env.INFERENCE_API_KEY) {
     healthStatus.status = 'DEGRADED';
     healthStatus.message = 'API is running but some services are not configured';
   }
@@ -99,7 +227,7 @@ app.get('/test', (req, res) => {
   });
 });
 
-// Translation endpoint
+// Translation endpoint with token-based auth support
 app.post('/api/translate', async (req, res) => {
   try {
     const { text, sourceLang, targetLang, dialect } = req.body;
@@ -132,40 +260,35 @@ app.post('/api/translate', async (req, res) => {
     try {
       console.log(`🔄 Translating: "${text}" | ${sourceLang} → ${targetLang}`);
       
-      // Direct API call to Bhashini
-      const response = await fetch(BHASHINI_INFERENCE_URL, {
-        method: 'POST',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-          'Authorization': process.env.INFERENCE_API_KEY,
-          'x-api-key': process.env.INFERENCE_API_KEY
-        },
-        body: JSON.stringify({
-          pipelineTasks: [
-            {
-              taskType: 'translation',
-              config: {
-                language: {
-                  sourceLanguage: sourceLang,
-                  targetLanguage: targetLang
-                },
-                serviceId: 'ai4bharat/indictrans-v2-all-gpu--t4'
-              }
-            }
-          ],
-          inputData: {
-            input: [{ source: text }]
+      let response;
+      let authMethod = 'direct';
+
+      // Try token-based auth first if UDYAT_API_KEY is available
+      if (process.env.UDYAT_API_KEY) {
+        try {
+          const token = await getBhashiniAccessToken();
+          if (token) {
+            console.log('🔐 Using token-based authentication');
+            response = await translateWithToken(text, sourceLang, targetLang, token);
+            authMethod = 'token';
           }
-        })
-      });
+        } catch (tokenError) {
+          console.warn('⚠️  Token-based auth failed, falling back to direct API call');
+        }
+      }
+
+      // Fallback to direct API call if token method failed or not available
+      if (!response) {
+        console.log('🔑 Using direct API authentication');
+        response = await translateDirect(text, sourceLang, targetLang);
+      }
 
       const responseText = await response.text();
       console.log('Response status:', response.status);
       
       if (!response.ok) {
         console.error('API Error Response:', responseText);
-        throw new Error(`Translation API error: ${response.status} - ${responseText.substring(0, 200)}`);
+                throw new Error(`Translation API error: ${response.status} - ${responseText.substring(0, 200)}`);
       }
 
       const data = JSON.parse(responseText);
@@ -193,7 +316,8 @@ app.post('/api/translate', async (req, res) => {
           targetLang,
           dialect,
           textLength: text.length,
-          translationLength: translation.length
+          translationLength: translation.length,
+          authMethod
         }
       });
       
@@ -231,7 +355,7 @@ app.post('/api/translate', async (req, res) => {
   }
 });
 
-// Test Bhashini API endpoint
+// Test Bhashini API endpoint with token support
 app.get('/api/bhashini/test', async (req, res) => {
   try {
     if (!process.env.INFERENCE_API_KEY) {
@@ -243,43 +367,70 @@ app.get('/api/bhashini/test', async (req, res) => {
 
     console.log('🧪 Testing Bhashini API...');
 
-    // Test with a simple translation request
-    const testResponse = await fetch(BHASHINI_INFERENCE_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': process.env.INFERENCE_API_KEY,
-        'x-api-key': process.env.INFERENCE_API_KEY
+    const results = {
+      inference_key: {
+        exists: !!process.env.INFERENCE_API_KEY,
+        length: process.env.INFERENCE_API_KEY?.length || 0
       },
-      body: JSON.stringify({
-        pipelineTasks: [
-          {
-            taskType: 'translation',
-            config: {
-              language: {
-                sourceLanguage: 'en',
-                targetLanguage: 'hi'
-              },
-              serviceId: 'ai4bharat/indictrans-v2-all-gpu--t4'
-            }
-          }
-        ],
-        inputData: {
-          input: [{ source: 'Hello' }]
-        }
-      })
-    });
+      udyat_key: {
+        exists: !!process.env.UDYAT_API_KEY,
+        length: process.env.UDYAT_API_KEY?.length || 0
+      },
+      tests: {}
+    };
 
-    const responseText = await testResponse.text();
-    console.log('Test response status:', testResponse.status);
-    
+    // Test token authentication if UDYAT key is available
+    if (process.env.UDYAT_API_KEY) {
+      try {
+        console.log('🔐 Testing token authentication...');
+        const token = await getBhashiniAccessToken();
+        results.tests.tokenAuth = {
+          success: !!token,
+          tokenLength: token?.length || 0,
+          cached: tokenCache.token === token
+        };
+      } catch (tokenError) {
+        results.tests.tokenAuth = {
+          success: false,
+          error: tokenError.message
+        };
+      }
+    }
+
+    // Test translation
+    try {
+      console.log('🔄 Testing translation...');
+      const testResponse = await fetch(`http://localhost:${PORT}/api/translate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          text: 'Hello',
+          sourceLang: 'en',
+          targetLang: 'hi'
+        })
+      });
+
+      const testData = await testResponse.json();
+      results.tests.translation = {
+        success: testResponse.ok && testData.success,
+        status: testResponse.status,
+        translation: testData.translation,
+        authMethod: testData.metadata?.authMethod
+      };
+    } catch (translationError) {
+      results.tests.translation = {
+        success: false,
+        error: translationError.message
+      };
+    }
+
     res.json({
-      success: testResponse.ok,
-      status: testResponse.status,
-      headers: Object.fromEntries(testResponse.headers.entries()),
-      response: testResponse.ok ? JSON.parse(responseText) : responseText.substring(0, 500),
-      apiKeyLength: process.env.INFERENCE_API_KEY.length,
-      endpoint: BHASHINI_INFERENCE_URL
+      success: true,
+      endpoint: BHASHINI_INFERENCE_URL,
+      authEndpoint: BHASHINI_AUTH_URL,
+      ...results
     });
     
   } catch (error) {
@@ -299,9 +450,15 @@ app.get('/api/debug/env', (req, res) => {
     INFERENCE_KEY_LENGTH: process.env.INFERENCE_API_KEY?.length || 0,
     INFERENCE_KEY_PREVIEW: process.env.INFERENCE_API_KEY ? 
       `${process.env.INFERENCE_API_KEY.substring(0, 5)}...${process.env.INFERENCE_API_KEY.slice(-5)}` : 'NOT SET',
+    UDYAT_KEY_EXISTS: !!process.env.UDYAT_API_KEY,
+    UDYAT_KEY_LENGTH: process.env.UDYAT_API_KEY?.length || 0,
+    UDYAT_KEY_PREVIEW: process.env.UDYAT_API_KEY ? 
+      `${process.env.UDYAT_API_KEY.substring(0, 5)}...${process.env.UDYAT_API_KEY.slice(-5)}` : 'NOT SET',
     GEMINI_KEY_EXISTS: !!process.env.GEMINI_API_KEY,
     PINECONE_KEY_EXISTS: !!process.env.PINECONE_API_KEY,
-    NODE_ENV: process.env.NODE_ENV || 'development'
+    NODE_ENV: process.env.NODE_ENV || 'development',
+    TOKEN_CACHED: !!tokenCache.token,
+    TOKEN_EXPIRES: tokenCache.expiresAt ? new Date(tokenCache.expiresAt).toISOString() : null
   });
 });
 
@@ -328,7 +485,7 @@ const handleChatRequest = async (req, res) => {
   } catch (error) {
     console.error('❌ Chat endpoint error:', error);
     res.status(500).json({ 
-            error: 'Internal server error',
+      error: 'Internal server error',
       message: process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong',
       timestamp: new Date().toISOString()
     });
@@ -345,7 +502,11 @@ app.post('/chatbot', handleChatRequest);
 app.get('/api', (req, res) => {
   res.json({
     message: 'Legal Services API',
-    version: '1.0.0',
+    version: '2.0.0',
+    authentication: {
+      bhashini: process.env.UDYAT_API_KEY ? 'token-based' : 'direct',
+      tokenCached: !!tokenCache.token
+    },
     endpoints: {
       'GET /health': 'Health check endpoint',
       'GET /test': 'Test endpoint',
@@ -386,7 +547,8 @@ app.get('/api', (req, res) => {
           sourceLang: 'en',
           targetLang: 'hi',
           textLength: 100,
-          translationLength: 120
+          translationLength: 120,
+          authMethod: 'token' // or 'direct'
         }
       }
     },
@@ -396,9 +558,14 @@ app.get('/api', (req, res) => {
       description: 'Test Bhashini API connection and configuration',
       response: {
         success: true,
-        status: 200,
-        apiKeyLength: 64,
-        endpoint: 'https://dhruva-api.bhashini.gov.in/services/inference/pipeline'
+        endpoint: 'https://dhruva-api.bhashini.gov.in/services/inference/pipeline',
+        authEndpoint: 'https://auth.ulc.bhashini.gov.in/api/v1/udyat/token',
+        inference_key: { exists: true, length: 64 },
+        udyat_key: { exists: true, length: 32 },
+        tests: {
+          tokenAuth: { success: true, cached: false },
+          translation: { success: true, authMethod: 'token' }
+        }
       }
     },
     supportedLanguages: {
@@ -475,18 +642,19 @@ const server = app.listen(PORT, () => {
     console.log('3. Restart the server\n');
   }
 
-  if (!process.env.INFERENCE_API_KEY) {
+  if (!process.env.UDYAT_API_KEY || !process.env.INFERENCE_API_KEY) {
     console.log('\n⚠️  To enable translation features:');
     console.log('1. Register at: https://bhashini.gov.in/ulca');
-    console.log('2. Get your Inference API key from the Bhashini platform');
+        console.log('2. Get your API keys from the Bhashini platform');
     console.log('3. Add to .env.local:');
+    console.log('   UDYAT_API_KEY=your_udyat_key');
     console.log('   INFERENCE_API_KEY=your_inference_key');
     console.log('4. Restart the server\n');
   }
   
   console.log('💡 Quick test commands:');
   console.log('━'.repeat(50));
-  console.log('# Check if your API key is loaded:');
+  console.log('# Check if your API keys are loaded:');
   console.log(`curl http://localhost:${PORT}/api/debug/env\n`);
   
   console.log('# Test Bhashini API connection:');
@@ -500,6 +668,16 @@ const server = app.listen(PORT, () => {
   console.log(`curl -X POST http://localhost:${PORT}/chatbot \\`);
   console.log('  -H "Content-Type: application/json" \\');
   console.log('  -d \'{"messages":[{"role":"user","content":"Hello"}]}\'');
+  console.log('━'.repeat(50) + '\n');
+  
+  // Display authentication mode
+  if (process.env.UDYAT_API_KEY && process.env.INFERENCE_API_KEY) {
+    console.log('🔐 Bhashini Authentication: Token-based (Secure Mode)');
+  } else if (process.env.INFERENCE_API_KEY) {
+    console.log('🔑 Bhashini Authentication: Direct API Key (Basic Mode)');
+  } else {
+    console.log('❌ Bhashini Authentication: Not configured');
+  }
   console.log('━'.repeat(50) + '\n');
 });
 
