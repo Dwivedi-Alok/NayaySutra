@@ -16,7 +16,8 @@ import {
 } from '@heroicons/react/24/outline';
 
 // API Base URL - Change this to match your backend server
-const API_BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3001').replace(/\/+$/, '');
+const port= process.meta.env.VITE_API_URL||0
+const API_BASE_URL = (import.meta.env.VITE_API_URL || `http://localhost:${port}`).replace(/\/+$/, '');
 // Confidence Indicator Component
 const ConfidenceIndicator = ({ confidence }) => {
   if (confidence === null || confidence === undefined) return null;
