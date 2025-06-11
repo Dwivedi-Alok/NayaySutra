@@ -11,7 +11,7 @@ dotenv.config({ path: '.env.local' });
 // Verify environment variables are loaded
 console.log('🔧 Environment Check:', {
   NODE_ENV: process.env.NODE_ENV || 'development',
-  PORT: process.env.VITE_API_URL || '',
+  PORT: process.env.VITE_API_URL || 'https://nayaysutra.onrender.com',
   GEMINI_API_KEY: process.env.GEMINI_API_KEY ? '✅ Set' : '❌ Missing',
   PINECONE_API_KEY: process.env.PINECONE_API_KEY ? '✅ Set' : '❌ Missing',
   PINECONE_INDEX_NAME: process.env.PINECONE_INDEX_NAME || 'Not set',
@@ -73,6 +73,9 @@ app.use(cors({
     
     // Allow any localhost port for development
     if (origin.startsWith('http://localhost:')) {
+      return callback(null, true);
+    }
+    if (origin.startsWith('https://nayaysutra.onrender.com')) {
       return callback(null, true);
     }
     
@@ -443,7 +446,7 @@ app.get('/api/bhashini/test', async (req, res) => {
     // Test translation
     try {
       console.log('🔄 Testing translation...');
-      const testResponse = await fetch(`http://localhost:${PORT}/api/translate`, {
+      const testResponse = await fetch(`https://nayaysutra.onrender.com/api/translate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
