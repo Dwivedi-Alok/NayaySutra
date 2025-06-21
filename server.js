@@ -42,7 +42,7 @@ const __dirname = dirname(__filename);
 
 const app = express();
 
-const PORT = process.env.PORT || 0;
+const PORT = process.env.PORT || 3001;
 // const PORT = process.env.PORT || 3001;
 // const PORT = process.env.VITE_API_URL || "3001";
 
